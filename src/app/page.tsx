@@ -487,6 +487,12 @@ function SettingsView({ onReset }: { onReset: () => void }) {
           </>
         )}
 
+        <div className="flex justify-center gap-4 mb-3">
+          <a href="/privacy" className="text-sm text-slate-500 hover:text-slate-700 transition-colors underline">
+            Privacy Policy
+          </a>
+        </div>
+
         <p className="text-xs text-slate-500">
           Made with love by Jess and Kai 🩷
         </p>
