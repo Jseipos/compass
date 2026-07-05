@@ -2,11 +2,12 @@
 // Mental health data stays on device
 
 const DB_NAME = "compass-journal";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_JOURNAL = "entries";
 const STORE_ASSESSMENT = "assessment";
 const STORE_PLAN = "plan";
 const STORE_THERAPIST = "therapist";
+const STORE_PREFS = "prefs";
 
 export interface JournalEntry {
   id: string;
@@ -48,6 +49,9 @@ function openDB(): Promise<IDBDatabase> {
       }
       if (!db.objectStoreNames.contains(STORE_THERAPIST)) {
         db.createObjectStore(STORE_THERAPIST, { keyPath: "id" });
+      }
+      if (!db.objectStoreNames.contains(STORE_PREFS)) {
+        db.createObjectStore(STORE_PREFS, { keyPath: "id" });
       }
     };
   });
@@ -133,6 +137,27 @@ export async function getPlan(): Promise<{ id: string; data: unknown } | null> {
     const request = tx.objectStore(STORE_PLAN).get("current");
     request.onsuccess = () => resolve(request.result ?? null);
     request.onerror = () => reject(request.error);
+  });
+}
+
+// ===== Prefs =====
+export async function getPref(key: string): Promise<string | null> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_PREFS, "readonly");
+    const req = tx.objectStore(STORE_PREFS).get(key);
+    req.onsuccess = () => resolve(req.result?.value ?? null);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+export async function setPref(key: string, value: string): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_PREFS, "readwrite");
+    tx.objectStore(STORE_PREFS).put({ id: key, value });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
   });
 }
 

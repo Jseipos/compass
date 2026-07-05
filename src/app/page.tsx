@@ -11,9 +11,10 @@ import Results from "@/components/Results";
 import Journal from "@/components/Journal";
 import History from "@/components/History";
 import TabBar from "@/components/TabBar";
+import Welcome from "@/components/Welcome";
 
 type Tab = "home" | "journal" | "history" | "settings";
-type View = "loading" | Tab | "results" | "break" | string;
+type View = "loading" | "welcome" | Tab | "results" | "break" | string;
 
 export default function Home() {
   const [view, setView] = useState<View>("loading");
@@ -37,6 +38,9 @@ export default function Home() {
 
   useEffect(() => {
     async function load() {
+      const { getPref } = await import("@/lib/storage");
+      const hasSeenWelcome = await getPref("hasSeenWelcome");
+
       const saved = await getAssessmentAnswers();
       if (saved && Object.keys(saved).length > 0) {
         setAnswers(saved);
@@ -45,7 +49,12 @@ export default function Home() {
           setPlan(generatePlan(results.topPatterns));
         }
       }
-      setView("home");
+
+      if (!hasSeenWelcome) {
+        setView("welcome");
+      } else {
+        setView("home");
+      }
     }
     load();
   }, []);
@@ -92,6 +101,18 @@ export default function Home() {
           <p className="text-slate-500">Loading...</p>
         </div>
       </div>
+    );
+  }
+
+  if (view === "welcome") {
+    return (
+      <Welcome
+        onBegin={async () => {
+          const { setPref } = await import("@/lib/storage");
+          await setPref("hasSeenWelcome", "true");
+          setView("home");
+        }}
+      />
     );
   }
 
