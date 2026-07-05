@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { getAssessmentAnswers, saveAssessmentAnswers } from "@/lib/storage";
 import { scoreAssessment, questionGroups } from "@/lib/assessment";
 import { generatePlan, type JournalPrompt } from "@/lib/prompts";
@@ -304,6 +304,8 @@ export default function Home() {
 // Inline settings view (replaces the separate /settings route for tab navigation)
 function SettingsView({ onReset }: { onReset: () => void }) {
   const [cleared, setCleared] = useState(false);
+  const [importResult, setImportResult] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleReset = async () => {
     const { deleteAllData } = await import("@/lib/storage");
@@ -312,10 +314,45 @@ function SettingsView({ onReset }: { onReset: () => void }) {
     setTimeout(() => onReset(), 1500);
   };
 
+  const handleExport = async () => {
+    const { exportAllData } = await import("@/lib/storage");
+    const data = await exportAllData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const date = new Date().toISOString().split("T")[0];
+    a.download = `compass-export-${date}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if (data.app !== "compass") {
+        setImportResult("That doesn't look like a Compass export file.");
+        return;
+      }
+      const { importData } = await import("@/lib/storage");
+      const result = await importData(data);
+      setImportResult(`Imported ${result.entries} journal entries${result.assessment ? " + assessment answers" : ""}.`);
+      // Reload the page after a short delay so the app picks up the imported data
+      setTimeout(() => onReset(), 2000);
+    } catch {
+      setImportResult("Couldn't read that file. Make sure it's a valid Compass export.");
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center p-6 min-h-[60vh]">
       <div className="max-w-md w-full text-center">
-        <div className="text-3xl mb-4">🧭</div>
+        <div className="text-3xl mb-4" aria-hidden="true">🧭</div>
         <h1 className="text-xl font-bold text-slate-800 mb-4">Settings</h1>
 
         {cleared ? (
@@ -325,6 +362,48 @@ function SettingsView({ onReset }: { onReset: () => void }) {
           </div>
         ) : (
           <>
+            {/* Export */}
+            <div className="bg-white rounded-xl border border-slate-200 p-6 mb-4 text-left">
+              <h2 className="font-medium text-slate-800 mb-2">Export your data</h2>
+              <p className="text-sm text-slate-500 leading-relaxed mb-4">
+                Download a JSON file with your assessment answers and all journal entries.
+                Keep it somewhere safe. You can import it on any device.
+              </p>
+              <button
+                onClick={handleExport}
+                className="w-full py-3 bg-slate-700 text-white font-medium rounded-xl hover:bg-slate-800 transition-colors"
+              >
+                Export data ↓
+              </button>
+            </div>
+
+            {/* Import */}
+            <div className="bg-white rounded-xl border border-slate-200 p-6 mb-4 text-left">
+              <h2 className="font-medium text-slate-800 mb-2">Import data</h2>
+              <p className="text-sm text-slate-500 leading-relaxed mb-4">
+                Restore from a previous export. This adds to your existing data —
+                it won&apos;t delete anything.
+              </p>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full py-3 bg-slate-700 text-white font-medium rounded-xl hover:bg-slate-800 transition-colors"
+              >
+                Choose file ↑
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/json,.json"
+                onChange={handleImport}
+                className="hidden"
+                aria-label="Import Compass data file"
+              />
+              {importResult && (
+                <p className="text-sm text-teal-600 mt-3 text-center">{importResult}</p>
+              )}
+            </div>
+
+            {/* Reset */}
             <div className="bg-white rounded-xl border border-slate-200 p-6 mb-6 text-left">
               <h2 className="font-medium text-slate-800 mb-2">Reset everything</h2>
               <p className="text-sm text-slate-500 leading-relaxed mb-4">
