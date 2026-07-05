@@ -8,10 +8,11 @@ interface JournalProps {
   plan: { patterns: string[]; prompts: JournalPrompt[] };
   answeredCount: number;
   totalQuestions: number;
+  therapistPatterns?: string[];
   onBackToHub: () => void;
 }
 
-export default function Journal({ plan, answeredCount, totalQuestions, onBackToHub }: JournalProps) {
+export default function Journal({ plan, answeredCount, totalQuestions, therapistPatterns = [], onBackToHub }: JournalProps) {
   const [choices, setChoices] = useState<[JournalPrompt, JournalPrompt] | null>(null);
   const [selectedPrompt, setSelectedPrompt] = useState<JournalPrompt | null>(null);
   const [response, setResponse] = useState("");
@@ -23,7 +24,7 @@ export default function Journal({ plan, answeredCount, totalQuestions, onBackToH
 
   useEffect(() => {
     if (plan.prompts.length > 0) {
-      setChoices(getDailyPromptChoices(plan));
+      setChoices(getDailyPromptChoices(plan, 0, therapistPatterns));
     }
   }, [plan]);
 
