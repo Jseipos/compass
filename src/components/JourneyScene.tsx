@@ -185,49 +185,51 @@ export default function JourneyScene({
           <ScenePlant type={plantType} entryCount={entryCount} />
         </div>
 
-        {/* Place name and description */}
-        <div className="text-center max-w-sm">
-          <h2 className="text-2xl font-bold text-white drop-shadow-md mb-2">
-            {p.name}
-          </h2>
-          <p className="text-white/90 text-sm leading-relaxed drop-shadow-sm mb-4">
-            {p.description}
-          </p>
-
-          {/* Foraging info */}
-          <div className="bg-white/15 backdrop-blur-md rounded-xl px-4 py-3 mb-4">
-            <p className="text-white/95 text-xs leading-relaxed">
-              {entryCount === 0
-                ? "Write your first entry to begin foraging."
-                : `You've collected ${foragedCount} ${foragedCount === 1 ? "thing" : "things"} for your plant.`}
+        {/* Place name and description — framed card for readability on any terrain */}
+        <div className="max-w-sm w-full">
+          <div className="bg-slate-900/70 backdrop-blur-md rounded-2xl px-5 py-4 text-center">
+            <h2 className="text-xl font-bold text-white mb-2">
+              {p.name}
+            </h2>
+            <p className="text-slate-200 text-sm leading-relaxed mb-3">
+              {p.description}
             </p>
-            <p className="text-white/70 text-xs mt-1">
-              Here you find: <span className="text-white font-medium">{p.forageItem}</span>
-            </p>
-            <p className="text-white/60 text-xs mt-0.5 italic">{p.plantEffect}</p>
-          </div>
 
-          {/* Places visited */}
-          {foragedCount > 0 && (
-            <div className="flex flex-wrap justify-center gap-1.5 mb-4">
-              {(Object.keys(foragedByPlace) as PlaceId[]).map((pid) => {
-                const count = foragedByPlace[pid];
-                if (count === 0) return null;
-                return (
-                  <span
-                    key={pid}
-                    className="text-xs bg-white/15 backdrop-blur-md text-white/80 px-2 py-1 rounded-full"
-                  >
-                    {PLACES[pid].name} ×{count}
-                  </span>
-                );
-              })}
+            {/* Foraging info */}
+            <div className="bg-white/10 rounded-xl px-4 py-3 mb-3">
+              <p className="text-slate-100 text-xs leading-relaxed">
+                {entryCount === 0
+                  ? "Write your first entry to begin foraging."
+                  : `You've collected ${foragedCount} ${foragedCount === 1 ? "thing" : "things"} for your plant.`}
+              </p>
+              <p className="text-slate-300 text-xs mt-1">
+                Here you find: <span className="text-white font-medium">{p.forageItem}</span>
+              </p>
+              <p className="text-slate-400 text-xs mt-0.5 italic">{p.plantEffect}</p>
             </div>
-          )}
 
-          <p className="text-white/60 text-xs">
-            Close your eyes. Breathe. Stay as long as you want.
-          </p>
+            {/* Places visited */}
+            {foragedCount > 0 && (
+              <div className="flex flex-wrap justify-center gap-1.5 mb-3">
+                {(Object.keys(foragedByPlace) as PlaceId[]).map((pid) => {
+                  const count = foragedByPlace[pid];
+                  if (count === 0) return null;
+                  return (
+                    <span
+                      key={pid}
+                      className="text-xs bg-white/10 text-slate-200 px-2 py-1 rounded-full"
+                    >
+                      {PLACES[pid].name} ×{count}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+
+            <p className="text-slate-400 text-xs">
+              Close your eyes. Breathe. Stay as long as you want.
+            </p>
+          </div>
         </div>
       </div>
     </div>
