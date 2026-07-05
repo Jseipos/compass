@@ -25,23 +25,15 @@ export default function JourneyScene({
 }: JourneySceneProps) {
   const [audioOn, setAudioOn] = useState(false);
   const audioRef = useRef<AudioContext | null>(null);
+  const audioNodesRef = useRef<{ drone1: OscillatorNode; drone2: OscillatorNode; noise: AudioBufferSourceNode } | null>(null);
 
   const p = PLACES[place];
 
-  // Simple ambient audio via Web Audio API — low drone + nature-ish noise
-  useEffect(() => {
-    if (!audioOn) {
-      if (audioRef.current) {
-        audioRef.current.close();
-        audioRef.current = null;
-      }
-      return;
-    }
-
+  const startAudio = () => {
     const ctx = new AudioContext();
     audioRef.current = ctx;
 
-    // Base drone — two detuned oscillators
+    // Base drone
     const drone1 = ctx.createOscillator();
     const drone2 = ctx.createOscillator();
     const gainNode = ctx.createGain();
@@ -50,7 +42,6 @@ export default function JourneyScene({
     drone1.type = "sine";
     drone2.type = "sine";
 
-    // Different frequencies per place for different moods
     const baseFreq: Record<PlaceId, number> = {
       doorway: 110,
       misty_forest: 80,
@@ -61,11 +52,11 @@ export default function JourneyScene({
     };
 
     drone1.frequency.value = baseFreq[place];
-    drone2.frequency.value = baseFreq[place] * 1.005; // slight detune for warmth
+    drone2.frequency.value = baseFreq[place] * 1.005;
 
     filter.type = "lowpass";
     filter.frequency.value = 400;
-    gainNode.gain.value = 0.08;
+    gainNode.gain.value = 0;
     gainNode.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 2);
 
     drone1.connect(filter);
@@ -76,7 +67,7 @@ export default function JourneyScene({
     drone1.start();
     drone2.start();
 
-    // Brown noise for texture (rain, wind, water)
+    // Brown noise for texture
     const bufferSize = ctx.sampleRate * 2;
     const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = noiseBuffer.getChannelData(0);
@@ -94,7 +85,6 @@ export default function JourneyScene({
     const noiseGain = ctx.createGain();
     const noiseFilter = ctx.createBiquadFilter();
 
-    // Different noise character per place
     const noiseFilterFreq: Record<PlaceId, number> = {
       doorway: 200,
       misty_forest: 600,
@@ -122,14 +112,38 @@ export default function JourneyScene({
     noiseGain.connect(ctx.destination);
     noise.start();
 
-    return () => {
-      drone1.stop();
-      drone2.stop();
-      noise.stop();
-      ctx.close();
+    audioNodesRef.current = { drone1, drone2, noise };
+  };
+
+  const stopAudio = () => {
+    if (audioNodesRef.current) {
+      try {
+        audioNodesRef.current.drone1.stop();
+        audioNodesRef.current.drone2.stop();
+        audioNodesRef.current.noise.stop();
+      } catch {}
+      audioNodesRef.current = null;
+    }
+    if (audioRef.current) {
+      audioRef.current.close();
       audioRef.current = null;
-    };
-  }, [audioOn, place]);
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => stopAudio();
+  }, []);
+
+  const toggleAudio = () => {
+    if (audioOn) {
+      stopAudio();
+      setAudioOn(false);
+    } else {
+      startAudio();
+      setAudioOn(true);
+    }
+  };
 
   // Lock body scroll while open
   useEffect(() => {
@@ -168,7 +182,7 @@ export default function JourneyScene({
 
       {/* Audio toggle */}
       <button
-        onClick={() => setAudioOn(!audioOn)}
+        onClick={toggleAudio}
         aria-label={audioOn ? "Mute ambient sound" : "Play ambient sound"}
         className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-lg hover:bg-white/30 transition-colors"
         style={{ marginTop: "env(safe-area-inset-top)" }}
