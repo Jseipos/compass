@@ -318,6 +318,33 @@ export default function Home() {
                   </button>
                 );
               })}
+
+              {/* Direct select tile */}
+              <button
+                onClick={() => setView("settings")}
+                className="text-left p-4 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-300 hover:shadow-sm transition-all duration-200"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="text-2xl" aria-hidden="true">🎯</div>
+                    <h2 className="font-bold text-slate-800 text-sm">My Focus Areas</h2>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500 leading-relaxed mb-2 line-clamp-2">
+                  Choose what you want to work on. Bring your own list or your therapist&apos;s.
+                </p>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-slate-300"
+                      style={{ width: therapistPatterns.length > 0 ? "100%" : "0%" }}
+                    />
+                  </div>
+                  <span className="text-xs text-slate-500">
+                    {therapistPatterns.length > 0 ? `${therapistPatterns.length} selected` : "None yet"}
+                  </span>
+                </div>
+              </button>
             </div>
 
             <p className="text-center text-xs text-slate-500">
