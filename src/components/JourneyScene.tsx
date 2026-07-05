@@ -31,6 +31,10 @@ export default function JourneyScene({
 
   const startAudio = () => {
     const ctx = new AudioContext();
+    // iOS often starts AudioContext in suspended state
+    if (ctx.state === "suspended") {
+      ctx.resume();
+    }
     audioRef.current = ctx;
 
     // Base drone
@@ -55,9 +59,9 @@ export default function JourneyScene({
     drone2.frequency.value = baseFreq[place] * 1.005;
 
     filter.type = "lowpass";
-    filter.frequency.value = 400;
+    filter.frequency.value = 600;
     gainNode.gain.value = 0;
-    gainNode.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 2);
+    gainNode.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 2);
 
     drone1.connect(filter);
     drone2.connect(filter);
@@ -94,12 +98,12 @@ export default function JourneyScene({
       old_growth_grove: 300,
     };
     const noiseGainVal: Record<PlaceId, number> = {
-      doorway: 0.01,
-      misty_forest: 0.04,
-      riverbank: 0.06,
-      wildflower_field: 0.03,
-      mountain_trail: 0.05,
-      old_growth_grove: 0.02,
+      doorway: 0.03,
+      misty_forest: 0.06,
+      riverbank: 0.08,
+      wildflower_field: 0.05,
+      mountain_trail: 0.07,
+      old_growth_grove: 0.04,
     };
 
     noiseFilter.type = "lowpass";
