@@ -306,6 +306,22 @@ function SettingsView({ onReset }: { onReset: () => void }) {
   const [cleared, setCleared] = useState(false);
   const [importResult, setImportResult] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [therapistText, setTherapistText] = useState("");
+  const [therapistSaved, setTherapistSaved] = useState(false);
+  const [savedPlan, setSavedPlan] = useState<string | null>(null);
+
+  // Load saved therapist plan on mount
+  useEffect(() => {
+    async function load() {
+      const { getTherapistPlan } = await import("@/lib/storage");
+      const plan = await getTherapistPlan();
+      if (plan) {
+        setTherapistText(plan.text);
+        setSavedPlan(plan.text);
+      }
+    }
+    load();
+  }, []);
 
   const handleReset = async () => {
     const { deleteAllData } = await import("@/lib/storage");
@@ -342,17 +358,31 @@ function SettingsView({ onReset }: { onReset: () => void }) {
       const { importData } = await import("@/lib/storage");
       const result = await importData(data);
       setImportResult(`Imported ${result.entries} journal entries${result.assessment ? " + assessment answers" : ""}.`);
-      // Reload the page after a short delay so the app picks up the imported data
       setTimeout(() => onReset(), 2000);
     } catch {
       setImportResult("Couldn't read that file. Make sure it's a valid Compass export.");
     }
   };
 
+  const handleSaveTherapist = async () => {
+    const { saveTherapistPlan } = await import("@/lib/storage");
+    await saveTherapistPlan(therapistText);
+    setTherapistSaved(true);
+    setSavedPlan(therapistText);
+    setTimeout(() => setTherapistSaved(false), 2000);
+  };
+
+  const handleClearTherapist = async () => {
+    const { saveTherapistPlan } = await import("@/lib/storage");
+    await saveTherapistPlan("");
+    setTherapistText("");
+    setSavedPlan(null);
+  };
+
   return (
     <div className="flex flex-col items-center justify-center p-6 min-h-[60vh]">
       <div className="max-w-md w-full text-center">
-        <div className="text-3xl mb-4" aria-hidden="true">🧭</div>
+        <div className="text-3xl mb-4" aria-hidden="true">⚙️</div>
         <h1 className="text-xl font-bold text-slate-800 mb-4">Settings</h1>
 
         {cleared ? (
@@ -362,12 +392,49 @@ function SettingsView({ onReset }: { onReset: () => void }) {
           </div>
         ) : (
           <>
+            {/* Therapist Treatment Plan */}
+            <div className="bg-white rounded-xl border border-slate-200 p-6 mb-4 text-left">
+              <h2 className="font-medium text-slate-800 mb-2">Therapist recommendations</h2>
+              <p className="text-sm text-slate-500 leading-relaxed mb-4">
+                Paste your therapist&apos;s treatment plan, recommended focus areas, or session notes here.
+                Compass will read it and prioritize journal prompts that match what you&apos;re working on in therapy.
+              </p>
+              <textarea
+                value={therapistText}
+                onChange={(e) => setTherapistText(e.target.value)}
+                placeholder="e.g., Diagnosis: PTSD, Generalized Anxiety. Focus on grounding techniques, anxiety tracking, sleep journaling. Working on avoidance patterns and hypervigilance..."
+                aria-label="Therapist recommendations"
+                className="w-full min-h-[120px] p-4 rounded-xl border-2 border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:border-rose-300 focus:outline-none transition-colors resize-none leading-relaxed text-sm mb-3"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSaveTherapist}
+                  disabled={therapistText.trim().length < 5}
+                  className="flex-1 py-3 bg-rose-500 text-white font-medium rounded-xl hover:bg-rose-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  {therapistSaved ? "Saved ✓" : "Save plan"}
+                </button>
+                {savedPlan && (
+                  <button
+                    onClick={handleClearTherapist}
+                    className="py-3 px-4 bg-white border-2 border-slate-200 text-slate-600 font-medium rounded-xl hover:border-slate-300 transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              {savedPlan && (
+                <p className="text-xs text-slate-400 mt-3">
+                  ✓ Plan saved. Your journal prompts will prioritize these focus areas.
+                </p>
+              )}
+            </div>
+
             {/* Export */}
             <div className="bg-white rounded-xl border border-slate-200 p-6 mb-4 text-left">
               <h2 className="font-medium text-slate-800 mb-2">Export your data</h2>
               <p className="text-sm text-slate-500 leading-relaxed mb-4">
-                Download a JSON file with your assessment answers and all journal entries.
-                Keep it somewhere safe. You can import it on any device.
+                Download a backup of your assessment answers, journal entries, and therapist plan.
               </p>
               <button
                 onClick={handleExport}
@@ -377,12 +444,11 @@ function SettingsView({ onReset }: { onReset: () => void }) {
               </button>
             </div>
 
-            {/* Import */}
+            {/* Import backup */}
             <div className="bg-white rounded-xl border border-slate-200 p-6 mb-4 text-left">
-              <h2 className="font-medium text-slate-800 mb-2">Import data</h2>
+              <h2 className="font-medium text-slate-800 mb-2">Restore from backup</h2>
               <p className="text-sm text-slate-500 leading-relaxed mb-4">
-                Restore from a previous export. This adds to your existing data —
-                it won&apos;t delete anything.
+                Import a previous Compass export file. This adds to your existing data.
               </p>
               <button
                 onClick={() => fileInputRef.current?.click()}
@@ -396,7 +462,7 @@ function SettingsView({ onReset }: { onReset: () => void }) {
                 accept="application/json,.json"
                 onChange={handleImport}
                 className="hidden"
-                aria-label="Import Compass data file"
+                aria-label="Import Compass backup file"
               />
               {importResult && (
                 <p className="text-sm text-teal-600 mt-3 text-center">{importResult}</p>
@@ -407,7 +473,7 @@ function SettingsView({ onReset }: { onReset: () => void }) {
             <div className="bg-white rounded-xl border border-slate-200 p-6 mb-6 text-left">
               <h2 className="font-medium text-slate-800 mb-2">Reset everything</h2>
               <p className="text-sm text-slate-500 leading-relaxed mb-4">
-                This deletes your assessment answers, journal entries, and plan.
+                This deletes your assessment answers, journal entries, therapist plan, and cached data.
                 Everything is stored locally on your device, so it&apos;s gone for real.
                 No backup. No undo.
               </p>
