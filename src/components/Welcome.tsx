@@ -27,33 +27,28 @@ export default function Welcome({ onBegin }: WelcomeProps) {
   const [selectedPlant, setSelectedPlant] = useState<PlantType | null>(null);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col items-center justify-center p-6">
-      <div className="max-w-md w-full text-center">
-        <div className="text-5xl mb-8" aria-hidden="true">🧭</div>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col items-center p-4 sm:p-6 pt-6">
+      <div className="max-w-md w-full">
+        <div className="text-3xl mb-2 text-center" aria-hidden="true">🧭</div>
 
-        <h1 className="text-2xl font-bold text-slate-800 mb-6 leading-snug">
-          Sometimes your brain won&apos;t shut up.
-          <br />
-          Sometimes it goes too quiet.
+        <h1 className="text-xl font-bold text-slate-800 mb-2 leading-snug">
+          Sometimes your brain won&apos;t shut up. Sometimes it goes too quiet.
         </h1>
 
-        <p className="text-slate-600 leading-relaxed mb-8">
-          Compass helps you figure out which patterns are running the show
-          and gives you prompts worth writing about.
+        <p className="text-sm text-slate-600 mb-1">
+          Compass helps you figure out which patterns are running the show and gives you prompts worth writing about.
         </p>
 
-        <p className="text-sm text-slate-500 leading-relaxed mb-10">
-          No account, no server, no cloud.
-          <br />
-          What you write stays on your phone.
+        <p className="text-xs text-slate-500 mb-6">
+          No account, no server, no cloud. What you write stays on your phone.
         </p>
 
         {/* Plant picker */}
-        <div className="mb-8">
+        <div className="mb-6">
           <p className="text-sm font-medium text-slate-700 mb-1">
             Pick your plant.
           </p>
-          <p className="text-xs text-slate-500 mb-4">
+          <p className="text-xs text-slate-500 mb-3">
             Each entry you write feeds it. Watch it grow.
           </p>
 
@@ -85,15 +80,13 @@ export default function Welcome({ onBegin }: WelcomeProps) {
         <button
           onClick={() => selectedPlant && onBegin(selectedPlant)}
           disabled={!selectedPlant}
-          className="w-full py-4 bg-gradient-to-r from-rose-600 to-teal-600 text-white font-medium rounded-xl hover:opacity-90 transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-400 disabled:opacity-30 disabled:cursor-not-allowed"
+          className="w-full py-3.5 bg-gradient-to-r from-rose-600 to-teal-600 text-white font-medium rounded-xl hover:opacity-90 transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-400 disabled:opacity-30 disabled:cursor-not-allowed"
         >
           Start your journey →
         </button>
 
-        <p className="text-xs text-slate-500 mt-12">
-          Compass is a journaling tool, not a substitute for professional care.
-          <br />
-          If you&apos;re in crisis, call or text 988.
+        <p className="text-xs text-slate-500 mt-6">
+          Compass is a journaling tool, not a substitute for professional care. If you&apos;re in crisis, call or text 988.
         </p>
       </div>
     </div>
