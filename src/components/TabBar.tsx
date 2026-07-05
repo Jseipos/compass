@@ -19,6 +19,7 @@ export default function TabBar({ active, onNavigate, journalDisabled }: TabBarPr
       role="tablist"
       aria-label="Main navigation"
       className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-200 shadow-sm"
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       <div className="max-w-2xl mx-auto flex items-center justify-around px-2 h-16">
         {tabs.map((tab) => {
