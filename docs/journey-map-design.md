@@ -175,3 +175,4 @@ The plant is a cumulative record of everywhere you've been. Not just where you a
 - New storage: collected items per plant (array of {type, place, date, entryId})
 - New component: JourneyMap.tsx (or evolve Plant.tsx to include terrain)
 - Place calculation: pure function from entry data, cached on each entry save
+
