@@ -18,9 +18,9 @@ export default function TabBar({ active, onNavigate, journalDisabled }: TabBarPr
     <nav
       role="tablist"
       aria-label="Main navigation"
-      className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-slate-200"
+      className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-200 shadow-sm"
     >
-      <div className="max-w-2xl mx-auto flex items-center justify-around px-2 h-14">
+      <div className="max-w-2xl mx-auto flex items-center justify-around px-2 h-16">
         {tabs.map((tab) => {
           const isActive = active === tab.id;
           const isDisabled = tab.id === "journal" && journalDisabled;
@@ -33,18 +33,18 @@ export default function TabBar({ active, onNavigate, journalDisabled }: TabBarPr
               aria-disabled={isDisabled}
               tabIndex={isDisabled ? -1 : 0}
               onClick={() => !isDisabled && onNavigate(tab.id)}
-              className={`flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-lg transition-all min-w-[60px] ${
+              className={`flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-lg transition-all min-w-[64px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-400 ${
                 isActive
-                  ? "text-rose-500"
+                  ? "text-rose-600"
                   : isDisabled
-                    ? "text-slate-300 cursor-not-allowed"
-                    : "text-slate-500 hover:text-slate-700"
+                    ? "text-slate-400 cursor-not-allowed"
+                    : "text-slate-600 hover:text-slate-800"
               }`}
             >
-              <span className="text-lg leading-none" aria-hidden="true">
+              <span className="text-2xl leading-none" aria-hidden="true">
                 {tab.icon}
               </span>
-              <span className="text-[10px] font-medium leading-none">
+              <span className="text-xs font-semibold leading-none">
                 {tab.label}
               </span>
             </button>
