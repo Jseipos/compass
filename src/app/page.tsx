@@ -206,7 +206,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
       <TabBar active={activeTab} onNavigate={handleNavigate} journalDisabled={!journalEnabled} />
 
-      <div id="main-content">
+      <div id="main-content" className="pb-[env(safe-area-inset-bottom)]">
       {view === "home" && (
         <div className="flex flex-col items-center p-4 sm:p-6">
           <div className="max-w-2xl w-full pt-4 sm:pt-6">
