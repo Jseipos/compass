@@ -281,6 +281,7 @@ export default function Home() {
         topPatterns={resultsData.topPatterns}
         totalScore={resultsData.totalScore}
         onContinue={handleStartJournaling}
+        onBack={handleBackToHub}
       />
     );
   }
