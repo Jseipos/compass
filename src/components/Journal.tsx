@@ -10,9 +10,10 @@ interface JournalProps {
   totalQuestions: number;
   therapistPatterns?: string[];
   onBackToHub: () => void;
+  onEntrySaved?: (entry: JournalEntry) => void;
 }
 
-export default function Journal({ plan, answeredCount, totalQuestions, therapistPatterns = [], onBackToHub }: JournalProps) {
+export default function Journal({ plan, answeredCount, totalQuestions, therapistPatterns = [], onBackToHub, onEntrySaved }: JournalProps) {
   const [choices, setChoices] = useState<[JournalPrompt, JournalPrompt] | null>(null);
   const [selectedPrompt, setSelectedPrompt] = useState<JournalPrompt | null>(null);
   const [response, setResponse] = useState("");
@@ -43,6 +44,7 @@ export default function Journal({ plan, answeredCount, totalQuestions, therapist
       energy,
     };
     await saveJournalEntry(entry);
+    onEntrySaved?.(entry);
     setSaved(true);
   };
 
