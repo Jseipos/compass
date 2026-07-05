@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { getAssessmentAnswers, saveAssessmentAnswers } from "@/lib/storage";
-import { scoreAssessment, questionGroups, patternInfo } from "@/lib/assessment";
+import { scoreAssessment, questionGroups } from "@/lib/assessment";
 import { generatePlan, type JournalPrompt } from "@/lib/prompts";
 import { breakScreens, type BreakScreen as BreakScreenData } from "@/lib/breaks";
 import Assessment from "@/components/Assessment";
@@ -24,7 +24,6 @@ export default function Home() {
   } | null>(null);
   const [pendingBreak, setPendingBreak] = useState<BreakScreenData | null>(null);
   const [shownBreaks, setShownBreaks] = useState<Set<number>>(new Set());
-  const [answersBeforeBreak, setAnswersBeforeBreak] = useState<Record<string, number>>({});
 
   const totalQuestions = questionGroups.reduce((sum, g) => sum + g.questions.length, 0);
   const answeredCount = Object.keys(answers).length;
@@ -42,7 +41,6 @@ export default function Home() {
         if (results.topPatterns.length > 0) {
           setPlan(generatePlan(results.topPatterns));
         }
-        // Start at hub — let user decide to journal or answer more
         setView("hub");
       } else {
         setView("hub");
@@ -51,7 +49,6 @@ export default function Home() {
     load();
   }, []);
 
-  // Save answers whenever they change
   const updateAnswers = useCallback(async (newAnswers: Record<string, number>) => {
     setAnswers(newAnswers);
     await saveAssessmentAnswers(newAnswers);
@@ -61,13 +58,11 @@ export default function Home() {
     }
   }, []);
 
-  // Check if a break screen should trigger based on cumulative answered count
   const checkForBreak = useCallback((newAnswers: Record<string, number>) => {
-    const answeredCount = Object.keys(newAnswers).length;
+    const count = Object.keys(newAnswers).length;
     for (const { afterQuestion, screen } of breakScreens) {
-      if (answeredCount >= afterQuestion && !shownBreaks.has(afterQuestion)) {
+      if (count >= afterQuestion && !shownBreaks.has(afterQuestion)) {
         setShownBreaks((prev) => new Set(prev).add(afterQuestion));
-        setAnswersBeforeBreak(newAnswers);
         setPendingBreak(screen);
         return true;
       }
@@ -104,26 +99,27 @@ export default function Home() {
     );
   }
 
-  // Hub is now part of the main page — shows progress + navigation
+  // Hub — shows progress + navigation
   if (view === "hub") {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col items-center p-6">
-        <div className="max-w-2xl w-full pt-8">
-          <div className="text-center mb-8">
-            <div className="text-4xl mb-4">🧭</div>
-            <h1 className="text-2xl font-bold text-slate-800 mb-2">
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col items-center p-4 sm:p-6">
+        <div className="max-w-2xl w-full pt-4 sm:pt-6">
+          {/* Hero — compact */}
+          <div className="text-center mb-4">
+            <div className="text-3xl mb-2">🧭</div>
+            <h1 className="text-xl font-bold text-slate-800 mb-1">
               {answeredCount === 0 ? "What gets in your way?" : "Welcome back"}
             </h1>
-            <p className="text-slate-500">
+            <p className="text-sm text-slate-500">
               {answeredCount === 0
-                ? "Pick a topic below. Answer as many or as few as you want. Come back anytime."
-                : `You've answered ${answeredCount} of ${totalQuestions} questions across ${completedGroups} of ${questionGroups.length} topics.`}
+                ? "Pick a topic below. Answer as many or as few as you want."
+                : `${answeredCount}/${totalQuestions} answered · ${completedGroups}/${questionGroups.length} topics`}
             </p>
           </div>
 
-          {/* Progress bar */}
+          {/* Progress bar — compact */}
           {answeredCount > 0 && (
-            <div className="flex items-center justify-center gap-3 mb-8">
+            <div className="flex items-center justify-center gap-3 mb-4">
               <div className="w-40 h-2 bg-slate-200 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-rose-400 to-teal-400 transition-all duration-500"
@@ -134,53 +130,8 @@ export default function Home() {
             </div>
           )}
 
-          {/* Topic cards — opens Assessment for that group */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-            {questionGroups.map((group) => {
-              const groupAnswered = group.questions.filter((q) => answers[q.id] !== undefined).length;
-              const isComplete = groupAnswered === group.questions.length;
-              return (
-                <button
-                  key={group.id}
-                  onClick={() => setView("assessment-" + group.id as any)}
-                  className={`text-left p-6 rounded-2xl border-2 transition-all duration-200 ${
-                    isComplete
-                      ? "border-teal-300 bg-teal-50/50"
-                      : "border-slate-200 bg-white hover:border-rose-300 hover:shadow-sm"
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="text-3xl">{group.emoji}</div>
-                    {isComplete && (
-                      <div className="text-xs text-teal-600 font-medium bg-teal-100 px-2 py-1 rounded-full">
-                        ✓ Done
-                      </div>
-                    )}
-                  </div>
-                  <h2 className="font-bold text-slate-800 mb-1">{group.title}</h2>
-                  <p className="text-sm text-slate-500 leading-relaxed mb-3">
-                    {group.description}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all ${
-                          isComplete ? "bg-teal-400" : "bg-rose-300"
-                        }`}
-                        style={{ width: `${(groupAnswered / group.questions.length) * 100}%` }}
-                      />
-                    </div>
-                    <span className="text-xs text-slate-400">
-                      {groupAnswered}/{group.questions.length}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Journal + History buttons */}
-          <div className="space-y-3">
+          {/* Journal + History — ABOVE topic cards so always visible */}
+          <div className="space-y-3 mb-6">
             <div className="grid grid-cols-2 gap-3">
               {plan && plan.prompts.length > 0 && (
                 <button
@@ -202,10 +153,20 @@ export default function Home() {
               </button>
             </div>
 
+            {/* See results button — only if assessment has data */}
+            {answeredCount > 0 && (
+              <button
+                onClick={handleSeeResults}
+                className="w-full py-2 text-sm text-slate-400 hover:text-slate-600 transition-colors text-center"
+              >
+                See my patterns →
+              </button>
+            )}
+
             {answeredCount > 0 && answeredCount < totalQuestions && (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
-                <p className="text-sm text-amber-700">
-                  💡 Your prompts will get more personalized as you answer more topics. {questionGroups.length - completedGroups} left to explore.
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
+                <p className="text-xs text-amber-700">
+                  💡 More personalized prompts as you answer more topics. {questionGroups.length - completedGroups} left.
                 </p>
               </div>
             )}
@@ -217,13 +178,60 @@ export default function Home() {
             )}
           </div>
 
-          <div className="flex justify-center gap-4 mt-6">
+          {/* Topic cards — compact, below action buttons */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+            {questionGroups.map((group) => {
+              const groupAnswered = group.questions.filter((q) => answers[q.id] !== undefined).length;
+              const isComplete = groupAnswered === group.questions.length;
+              return (
+                <button
+                  key={group.id}
+                  onClick={() => setView("assessment-" + group.id as any)}
+                  className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${
+                    isComplete
+                      ? "border-teal-300 bg-teal-50/50"
+                      : "border-slate-200 bg-white hover:border-rose-300 hover:shadow-sm"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="text-2xl">{group.emoji}</div>
+                      <h2 className="font-bold text-slate-800 text-sm">{group.title}</h2>
+                    </div>
+                    {isComplete && (
+                      <div className="text-xs text-teal-600 font-medium bg-teal-100 px-2 py-0.5 rounded-full">
+                        ✓
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed mb-2 line-clamp-2">
+                    {group.description}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          isComplete ? "bg-teal-400" : "bg-rose-300"
+                        }`}
+                        style={{ width: `${(groupAnswered / group.questions.length) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-slate-400">
+                      {groupAnswered}/{group.questions.length}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex justify-center gap-4 mb-3">
             <a href="/settings" className="text-sm text-slate-400 hover:text-slate-600 transition-colors">
               Settings
             </a>
           </div>
 
-          <p className="text-center text-xs text-slate-400 mt-6">
+          <p className="text-center text-xs text-slate-400">
             Made with love by Jess and Kai 🩷
           </p>
         </div>
@@ -240,7 +248,6 @@ export default function Home() {
         groupId={groupId}
         onComplete={(newAnswers) => {
           updateAnswers(newAnswers);
-          // Check if a break screen should fire
           if (!checkForBreak(newAnswers)) {
             setView("hub");
           } else {
@@ -255,9 +262,7 @@ export default function Home() {
     return (
       <BreakScreen
         screen={pendingBreak}
-        onComplete={(_breakAnswers) => {
-          // Break answers could be folded into scoring in the future
-          // For now they're just engagement — clear and go to hub
+        onComplete={() => {
           setPendingBreak(null);
           setView("hub");
         }}
