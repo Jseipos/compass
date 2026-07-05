@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { getAssessmentAnswers, saveAssessmentAnswers } from "@/lib/storage";
 import { scoreAssessment, questionGroups } from "@/lib/assessment";
 import { generatePlan, type JournalPrompt } from "@/lib/prompts";
 import { breakScreens, type BreakScreen as BreakScreenData } from "@/lib/breaks";
+import { downloadICSFile } from "@/lib/ics";
 import Assessment from "@/components/Assessment";
 import BreakScreen from "@/components/BreakScreen";
 import Results from "@/components/Results";
@@ -370,6 +371,8 @@ function SettingsView({ onReset }: { onReset: () => void }) {
   const [selectedPatterns, setSelectedPatterns] = useState<Set<string>>(new Set());
   const [therapistSaved, setTherapistSaved] = useState(false);
   const [hasSavedPlan, setHasSavedPlan] = useState(false);
+  const [reminderHour, setReminderHour] = useState(20); // 8 PM default
+  const [reminderMinute, setReminderMinute] = useState(0);
 
   const patternOptions = [
     { id: "adhd", label: "Focus & Follow-Through", desc: "Attention, task completion, hyperfocus" },
@@ -522,6 +525,41 @@ function SettingsView({ onReset }: { onReset: () => void }) {
                   ✓ Saved. Your journal prompts will prioritize these focus areas.
                 </p>
               )}
+            </div>
+
+            {/* Calendar reminder */}
+            <div className="bg-white rounded-xl border border-slate-200 p-6 mb-4 text-left">
+              <h2 className="font-medium text-slate-800 mb-2">Daily reminder</h2>
+              <p className="text-sm text-slate-500 leading-relaxed mb-4">
+                Add a recurring reminder to your phone&apos;s calendar app.
+                Compass won&apos;t send you anything. Your calendar handles the rest.
+              </p>
+              <div className="flex items-center gap-2 mb-4">
+                <label htmlFor="reminder-time" className="text-sm text-slate-600">
+                  Remind me at
+                </label>
+                <input
+                  id="reminder-time"
+                  type="time"
+                  value={`${reminderHour.toString().padStart(2, "0")}:${reminderMinute.toString().padStart(2, "0")}`}
+                  onChange={(e) => {
+                    const [h, m] = e.target.value.split(":").map(Number);
+                    setReminderHour(h);
+                    setReminderMinute(m);
+                  }}
+                  className="px-3 py-2 rounded-lg border-2 border-slate-200 text-slate-800 text-sm focus:border-rose-300 focus:outline-none"
+                />
+                <span className="text-sm text-slate-500">every day</span>
+              </div>
+              <button
+                onClick={() => downloadICSFile(reminderHour, reminderMinute)}
+                className="w-full py-3 bg-slate-700 text-white font-medium rounded-xl hover:bg-slate-800 transition-colors"
+              >
+                Add to my calendar ↓
+              </button>
+              <p className="text-xs text-slate-400 mt-3">
+                Downloads a calendar file. Open it on your phone to add a daily reminder.
+              </p>
             </div>
 
             {/* Export */}
