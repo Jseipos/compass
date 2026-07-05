@@ -37,7 +37,7 @@ export default function JourneyScene({
     }
     audioRef.current = ctx;
 
-    // Base drone
+    // Base drone — two detuned oscillators
     const drone1 = ctx.createOscillator();
     const drone2 = ctx.createOscillator();
     const gainNode = ctx.createGain();
@@ -60,7 +60,8 @@ export default function JourneyScene({
 
     filter.type = "lowpass";
     filter.frequency.value = 600;
-    gainNode.gain.value = 0;
+    // Start at non-zero value (exponentialRamp can't start from 0)
+    gainNode.gain.setValueAtTime(0.001, ctx.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 2);
 
     drone1.connect(filter);
@@ -108,7 +109,8 @@ export default function JourneyScene({
 
     noiseFilter.type = "lowpass";
     noiseFilter.frequency.value = noiseFilterFreq[place];
-    noiseGain.gain.value = 0;
+    // Same fix: start non-zero for exponential ramp
+    noiseGain.gain.setValueAtTime(0.001, ctx.currentTime);
     noiseGain.gain.exponentialRampToValueAtTime(noiseGainVal[place], ctx.currentTime + 3);
 
     noise.connect(noiseFilter);
