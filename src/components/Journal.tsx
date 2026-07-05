@@ -67,12 +67,6 @@ export default function Journal({ plan, answeredCount, totalQuestions, onBackToH
             >
               Write another →
             </button>
-            <button
-              onClick={onBackToHub}
-              className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
-            >
-              ← Topics
-            </button>
           </div>
         </div>
       </div>
@@ -88,12 +82,6 @@ export default function Journal({ plan, answeredCount, totalQuestions, onBackToH
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col items-center p-6">
         <div className="max-w-2xl w-full">
           <div className="mb-8 pt-4">
-            <button
-              onClick={onBackToHub}
-              className="text-sm text-slate-400 hover:text-slate-600 transition-colors mb-4"
-            >
-              ← Topics
-            </button>
             <div>
               <h1 className="text-xl font-bold text-slate-800">Today's Journal</h1>
               <p className="text-sm text-slate-400">
@@ -160,16 +148,10 @@ export default function Journal({ plan, answeredCount, totalQuestions, onBackToH
         <div className="mb-8 pt-4">
           <div className="flex items-center justify-between mb-4">
             <button
-              onClick={onBackToHub}
-              className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
-            >
-              ← Topics
-            </button>
-            <button
               onClick={() => setSelectedPrompt(null)}
-              className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
+              className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
             >
-              Pick a different prompt →
+              ← Pick a different prompt
             </button>
           </div>
           <div>

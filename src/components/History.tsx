@@ -96,14 +96,8 @@ export default function History({ onBackToHub }: HistoryProps) {
         <div className="max-w-2xl w-full pt-4">
           <div className="mb-8 pt-4">
             <button
-              onClick={onBackToHub}
-              className="text-sm text-slate-400 hover:text-slate-600 transition-colors mb-4"
-            >
-              ← Topics
-            </button>
-            <button
               onClick={() => setSelected(null)}
-              className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
+              className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
             >
               ← Back to history
             </button>
@@ -210,7 +204,7 @@ export default function History({ onBackToHub }: HistoryProps) {
             onClick={onBackToHub}
             className="text-rose-500 hover:text-rose-600 font-medium"
           >
-            ← Back to topics
+            ← Back to home
           </button>
         </div>
       </div>
@@ -222,12 +216,6 @@ export default function History({ onBackToHub }: HistoryProps) {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col items-center p-6">
       <div className="max-w-2xl w-full pt-4">
         <div className="mb-6 pt-4">
-          <button
-            onClick={onBackToHub}
-            className="text-sm text-slate-400 hover:text-slate-600 transition-colors mb-4"
-          >
-            ← Topics
-          </button>
           <div>
             <h1 className="text-xl font-bold text-slate-800">Your Journal</h1>
             <p className="text-sm text-slate-400">
