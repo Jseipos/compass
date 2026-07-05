@@ -12,6 +12,8 @@ import Journal from "@/components/Journal";
 import History from "@/components/History";
 import TabBar from "@/components/TabBar";
 import Welcome from "@/components/Welcome";
+import type { PlantType } from "@/components/Welcome";
+import Plant from "@/components/Plant";
 import EngagementTracker from "@/components/EngagementTracker";
 
 type Tab = "home" | "journal" | "history" | "settings";
@@ -29,6 +31,8 @@ export default function Home() {
   const [pendingBreak, setPendingBreak] = useState<BreakScreenData | null>(null);
   const [shownBreaks, setShownBreaks] = useState<Set<number>>(new Set());
   const [engagementKey, setEngagementKey] = useState(0);
+  const [plantType, setPlantType] = useState<PlantType | null>(null);
+  const [entryCount, setEntryCount] = useState(0);
 
   const totalQuestions = questionGroups.reduce((sum, g) => sum + g.questions.length, 0);
   const answeredCount = Object.keys(answers).length;
@@ -42,6 +46,7 @@ export default function Home() {
     async function load() {
       const { getPref } = await import("@/lib/storage");
       const hasSeenWelcome = await getPref("hasSeenWelcome");
+      const savedPlant = await getPref("plantType");
 
       const saved = await getAssessmentAnswers();
       if (saved && Object.keys(saved).length > 0) {
@@ -51,6 +56,13 @@ export default function Home() {
           setPlan(generatePlan(results.topPatterns));
         }
       }
+
+      // Load entry count for plant
+      const { getJournalEntries } = await import("@/lib/storage");
+      const entries = await getJournalEntries();
+      setEntryCount(entries.length);
+
+      if (savedPlant) setPlantType(savedPlant as PlantType);
 
       if (!hasSeenWelcome) {
         setView("welcome");
@@ -84,7 +96,13 @@ export default function Home() {
 
   const handleNavigate = (tab: Tab) => {
     setView(tab);
-    if (tab === "home") setEngagementKey((k) => k + 1);
+    if (tab === "home") {
+      setEngagementKey((k) => k + 1);
+      // Refresh entry count
+      import("@/lib/storage").then(({ getJournalEntries }) => {
+        getJournalEntries().then((entries) => setEntryCount(entries.length));
+      });
+    }
   };
 
   const handleSeeResults = () => {
@@ -110,9 +128,11 @@ export default function Home() {
   if (view === "welcome") {
     return (
       <Welcome
-        onBegin={async () => {
+        onBegin={async (plant) => {
           const { setPref } = await import("@/lib/storage");
           await setPref("hasSeenWelcome", "true");
+          await setPref("plantType", plant);
+          setPlantType(plant);
           setView("home");
         }}
       />
@@ -209,6 +229,13 @@ export default function Home() {
             )}
 
             {/* Engagement tracker — heatmap + milestones */}
+            {/* Plant + engagement */}
+            {plantType && (
+              <div className="flex justify-center mb-4">
+                <Plant type={plantType} entryCount={entryCount} size={100} />
+              </div>
+            )}
+
             <EngagementTracker refreshKey={engagementKey} />
 
             {/* See patterns link */}
