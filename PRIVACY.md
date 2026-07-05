@@ -127,8 +127,8 @@ You have three options:
 
 If you have questions about this privacy policy or about how Compass handles data, you can reach us at:
 
-- **Email:** Jess will add a contact email before public launch
-- **GitHub:** <https://github.com/Jseipos/compass>
+- **GitHub:** <https://github.com/Jseipos/compass> (file an issue for privacy-related questions)
+- **Email:** To be added before public launch
 
 ## Disclaimer
 
