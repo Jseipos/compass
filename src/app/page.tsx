@@ -16,6 +16,9 @@ import Welcome from "@/components/Welcome";
 import type { PlantType } from "@/components/Welcome";
 import Plant from "@/components/Plant";
 import EngagementTracker from "@/components/EngagementTracker";
+import JourneyPorthole from "@/components/JourneyPorthole";
+import JourneyScene from "@/components/JourneyScene";
+import { calculatePlace, createForagedItem, countByPlace, type PlaceId, type ForagedItem } from "@/lib/journey";
 
 type Tab = "home" | "journal" | "history" | "settings";
 type View = "loading" | "welcome" | Tab | "results" | "break" | string;
@@ -35,6 +38,9 @@ export default function Home() {
   const [plantType, setPlantType] = useState<PlantType | null>(null);
   const [entryCount, setEntryCount] = useState(0);
   const [therapistPatterns, setTherapistPatterns] = useState<string[]>([]);
+  const [journeyPlace, setJourneyPlace] = useState<PlaceId>("doorway");
+  const [foragedItems, setForagedItems] = useState<ForagedItem[]>([]);
+  const [showScene, setShowScene] = useState(false);
 
   const totalQuestions = questionGroups.reduce((sum, g) => sum + g.questions.length, 0);
   const answeredCount = Object.keys(answers).length;
@@ -60,9 +66,14 @@ export default function Home() {
       }
 
       // Load entry count for plant
-      const { getJournalEntries } = await import("@/lib/storage");
+      const { getJournalEntries, getForagedItems } = await import("@/lib/storage");
       const entries = await getJournalEntries();
       setEntryCount(entries.length);
+
+      // Load foraged items and calculate journey place
+      const items = await getForagedItems();
+      setForagedItems(items);
+      setJourneyPlace(calculatePlace(entries));
 
       // Load therapist patterns
       const { getTherapistPlan } = await import("@/lib/storage");
@@ -105,11 +116,30 @@ export default function Home() {
     setView(tab);
     if (tab === "home") {
       setEngagementKey((k) => k + 1);
-      // Refresh entry count
-      import("@/lib/storage").then(({ getJournalEntries }) => {
-        getJournalEntries().then((entries) => setEntryCount(entries.length));
+      // Refresh entry count and journey data
+      import("@/lib/storage").then(({ getJournalEntries, getForagedItems }) => {
+        getJournalEntries().then((entries) => {
+          setEntryCount(entries.length);
+          setJourneyPlace(calculatePlace(entries));
+        });
+        getForagedItems().then((items) => setForagedItems(items));
       });
     }
+  };
+
+  const handleEntrySaved = async (entry: { id: string; date: string; promptId: string; promptText: string; response: string; followUpResponse?: string; mood?: number; energy?: number }) => {
+    // Save a foraged item for this entry
+    const { getJournalEntries, saveForagedItem, getForagedItems } = await import("@/lib/storage");
+    const entries = await getJournalEntries();
+    const place = calculatePlace(entries);
+    const item = createForagedItem(place, entry.id);
+    await saveForagedItem(item);
+
+    // Update state
+    setEntryCount(entries.length);
+    setJourneyPlace(place);
+    const items = await getForagedItems();
+    setForagedItems(items);
   };
 
   const handleSeeResults = () => {
@@ -236,11 +266,16 @@ export default function Home() {
               </div>
             )}
 
-            {/* Engagement tracker — heatmap + milestones */}
-            {/* Plant + engagement */}
+            {/* Journey Map — Porthole */}
             {plantType && (
               <div className="flex justify-center mb-4">
-                <Plant type={plantType} entryCount={entryCount} size={100} />
+                <JourneyPorthole
+                  place={journeyPlace}
+                  plantType={plantType}
+                  entryCount={entryCount}
+                  foragedCount={foragedItems.length}
+                  onTap={() => setShowScene(true)}
+                />
               </div>
             )}
 
@@ -361,6 +396,7 @@ export default function Home() {
           totalQuestions={totalQuestions}
           therapistPatterns={therapistPatterns}
           onBackToHub={() => setView("home")}
+          onEntrySaved={handleEntrySaved}
         />
       )}
 
@@ -387,6 +423,18 @@ export default function Home() {
       )}
 
       {view === "settings" && <SettingsView onReset={() => setView("home")} />}
+
+      {/* Journey Map — Full Screen Scene */}
+      {showScene && plantType && (
+        <JourneyScene
+          place={journeyPlace}
+          plantType={plantType}
+          entryCount={entryCount}
+          foragedCount={foragedItems.length}
+          foragedByPlace={countByPlace(foragedItems)}
+          onClose={() => setShowScene(false)}
+        />
+      )}
       </div>
     </div>
   );

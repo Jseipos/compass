@@ -2,12 +2,13 @@
 // Mental health data stays on device
 
 const DB_NAME = "compass-journal";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const STORE_JOURNAL = "entries";
 const STORE_ASSESSMENT = "assessment";
 const STORE_PLAN = "plan";
 const STORE_THERAPIST = "therapist";
 const STORE_PREFS = "prefs";
+const STORE_FORAGED = "foraged";
 
 export interface JournalEntry {
   id: string;
@@ -52,6 +53,9 @@ function openDB(): Promise<IDBDatabase> {
       }
       if (!db.objectStoreNames.contains(STORE_PREFS)) {
         db.createObjectStore(STORE_PREFS, { keyPath: "id" });
+      }
+      if (!db.objectStoreNames.contains(STORE_FORAGED)) {
+        db.createObjectStore(STORE_FORAGED, { keyPath: "id" });
       }
     };
   });
@@ -158,6 +162,33 @@ export async function setPref(key: string, value: string): Promise<void> {
     tx.objectStore(STORE_PREFS).put({ id: key, value });
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
+  });
+}
+
+// ===== Foraged Items (Journey Map) =====
+import type { ForagedItem } from "./journey";
+
+export async function saveForagedItem(item: ForagedItem): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_FORAGED, "readwrite");
+    tx.objectStore(STORE_FORAGED).put(item);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+export async function getForagedItems(): Promise<ForagedItem[]> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_FORAGED, "readonly");
+    const request = tx.objectStore(STORE_FORAGED).getAll();
+    request.onsuccess = () => {
+      const items = request.result as ForagedItem[];
+      items.sort((a, b) => a.date.localeCompare(b.date));
+      resolve(items);
+    };
+    request.onerror = () => reject(request.error);
   });
 }
 
