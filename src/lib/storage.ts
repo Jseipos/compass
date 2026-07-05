@@ -6,6 +6,7 @@ const DB_VERSION = 1;
 const STORE_JOURNAL = "entries";
 const STORE_ASSESSMENT = "assessment";
 const STORE_PLAN = "plan";
+const STORE_THERAPIST = "therapist";
 
 export interface JournalEntry {
   id: string;
@@ -44,6 +45,9 @@ function openDB(): Promise<IDBDatabase> {
       }
       if (!db.objectStoreNames.contains(STORE_PLAN)) {
         db.createObjectStore(STORE_PLAN, { keyPath: "id" });
+      }
+      if (!db.objectStoreNames.contains(STORE_THERAPIST)) {
+        db.createObjectStore(STORE_THERAPIST, { keyPath: "id" });
       }
     };
   });
@@ -139,6 +143,7 @@ export interface ExportData {
   exportedAt: string;
   assessment: { id: string; answers: Record<string, number>; date: string } | null;
   entries: JournalEntry[];
+  therapistPlan: { id: string; text: string; date: string } | null;
 }
 
 export async function exportAllData(): Promise<ExportData> {
@@ -150,12 +155,19 @@ export async function exportAllData(): Promise<ExportData> {
     req.onsuccess = () => resolve(req.result ?? null);
     req.onerror = () => reject(req.error);
   });
+  const therapistPlan = await new Promise<{ id: string; text: string; date: string } | null>((resolve, reject) => {
+    const tx = db.transaction(STORE_THERAPIST, "readonly");
+    const req = tx.objectStore(STORE_THERAPIST).get("current");
+    req.onsuccess = () => resolve(req.result ?? null);
+    req.onerror = () => reject(req.error);
+  });
   return {
     app: "compass",
     version: 1,
     exportedAt: new Date().toISOString(),
     assessment,
     entries,
+    therapistPlan,
   };
 }
 
@@ -189,7 +201,38 @@ export async function importData(data: ExportData): Promise<{ entries: number; a
     importedAssessment = true;
   }
 
+  // Import therapist plan
+  if (data.therapistPlan && data.therapistPlan.text) {
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE_THERAPIST, "readwrite");
+      tx.objectStore(STORE_THERAPIST).put(data.therapistPlan);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
   return { entries: importedEntries, assessment: importedAssessment };
+}
+
+// ===== Therapist Plan =====
+export async function saveTherapistPlan(text: string): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_THERAPIST, "readwrite");
+    tx.objectStore(STORE_THERAPIST).put({ id: "current", text, date: new Date().toISOString() });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+export async function getTherapistPlan(): Promise<{ id: string; text: string; date: string } | null> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_THERAPIST, "readonly");
+    const request = tx.objectStore(STORE_THERAPIST).get("current");
+    request.onsuccess = () => resolve(request.result ?? null);
+    request.onerror = () => reject(request.error);
+  });
 }
 
 // ===== Nuclear reset =====
