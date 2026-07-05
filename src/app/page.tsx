@@ -33,6 +33,7 @@ export default function Home() {
   const [engagementKey, setEngagementKey] = useState(0);
   const [plantType, setPlantType] = useState<PlantType | null>(null);
   const [entryCount, setEntryCount] = useState(0);
+  const [therapistPatterns, setTherapistPatterns] = useState<string[]>([]);
 
   const totalQuestions = questionGroups.reduce((sum, g) => sum + g.questions.length, 0);
   const answeredCount = Object.keys(answers).length;
@@ -61,6 +62,11 @@ export default function Home() {
       const { getJournalEntries } = await import("@/lib/storage");
       const entries = await getJournalEntries();
       setEntryCount(entries.length);
+
+      // Load therapist patterns
+      const { getTherapistPlan } = await import("@/lib/storage");
+      const tPlan = await getTherapistPlan();
+      if (tPlan && tPlan.patterns) setTherapistPatterns(tPlan.patterns);
 
       if (savedPlant) setPlantType(savedPlant as PlantType);
 
@@ -324,6 +330,7 @@ export default function Home() {
           plan={plan}
           answeredCount={answeredCount}
           totalQuestions={totalQuestions}
+          therapistPatterns={therapistPatterns}
           onBackToHub={() => setView("home")}
         />
       )}
@@ -360,18 +367,26 @@ function SettingsView({ onReset }: { onReset: () => void }) {
   const [cleared, setCleared] = useState(false);
   const [importResult, setImportResult] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [therapistText, setTherapistText] = useState("");
+  const [selectedPatterns, setSelectedPatterns] = useState<Set<string>>(new Set());
   const [therapistSaved, setTherapistSaved] = useState(false);
-  const [savedPlan, setSavedPlan] = useState<string | null>(null);
+  const [hasSavedPlan, setHasSavedPlan] = useState(false);
 
-  // Load saved therapist plan on mount
+  const patternOptions = [
+    { id: "adhd", label: "Focus & Follow-Through", desc: "Attention, task completion, hyperfocus" },
+    { id: "anxiety", label: "Worry & Overthinking", desc: "Racing thoughts, physical tension, avoidance" },
+    { id: "depression", label: "Energy & Motivation", desc: "Low mood, heaviness, withdrawal" },
+    { id: "autism", label: "Sensory & Social Energy", desc: "Overwhelm, masking, routine, stimming" },
+    { id: "ptsd", label: "Safety & Regulation", desc: "Hypervigilance, triggers, grounding" },
+    { id: "bipolar", label: "Energy & Mood Cycles", desc: "Ups and downs, sleep impact, impulsivity" },
+  ];
+
   useEffect(() => {
     async function load() {
       const { getTherapistPlan } = await import("@/lib/storage");
       const plan = await getTherapistPlan();
-      if (plan) {
-        setTherapistText(plan.text);
-        setSavedPlan(plan.text);
+      if (plan && plan.patterns && plan.patterns.length > 0) {
+        setSelectedPatterns(new Set(plan.patterns));
+        setHasSavedPlan(true);
       }
     }
     load();
@@ -418,19 +433,28 @@ function SettingsView({ onReset }: { onReset: () => void }) {
     }
   };
 
+  const handleTogglePattern = (id: string) => {
+    setSelectedPatterns((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   const handleSaveTherapist = async () => {
     const { saveTherapistPlan } = await import("@/lib/storage");
-    await saveTherapistPlan(therapistText);
+    await saveTherapistPlan(Array.from(selectedPatterns));
     setTherapistSaved(true);
-    setSavedPlan(therapistText);
+    setHasSavedPlan(true);
     setTimeout(() => setTherapistSaved(false), 2000);
   };
 
   const handleClearTherapist = async () => {
     const { saveTherapistPlan } = await import("@/lib/storage");
-    await saveTherapistPlan("");
-    setTherapistText("");
-    setSavedPlan(null);
+    await saveTherapistPlan([]);
+    setSelectedPatterns(new Set());
+    setHasSavedPlan(false);
   };
 
   return (
@@ -446,29 +470,45 @@ function SettingsView({ onReset }: { onReset: () => void }) {
           </div>
         ) : (
           <>
-            {/* Therapist Treatment Plan */}
+            {/* Therapist Recommendations — structured checkboxes */}
             <div className="bg-white rounded-xl border border-slate-200 p-6 mb-4 text-left">
               <h2 className="font-medium text-slate-800 mb-2">Therapist recommendations</h2>
               <p className="text-sm text-slate-500 leading-relaxed mb-4">
-                Paste your therapist&apos;s treatment plan, recommended focus areas, or session notes here.
-                Compass will read it and prioritize journal prompts that match what you&apos;re working on in therapy.
+                Select the focus areas your therapist recommends working on.
+                Compass will prioritize journal prompts that match.
               </p>
-              <textarea
-                value={therapistText}
-                onChange={(e) => setTherapistText(e.target.value)}
-                placeholder="e.g., Diagnosis: PTSD, Generalized Anxiety. Focus on grounding techniques, anxiety tracking, sleep journaling. Working on avoidance patterns and hypervigilance..."
-                aria-label="Therapist recommendations"
-                className="w-full min-h-[120px] p-4 rounded-xl border-2 border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:border-rose-300 focus:outline-none transition-colors resize-none leading-relaxed text-sm mb-3"
-              />
+              <div className="space-y-2 mb-4">
+                {patternOptions.map((opt) => (
+                  <label
+                    key={opt.id}
+                    className={`flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                      selectedPatterns.has(opt.id)
+                        ? "border-rose-400 bg-rose-50"
+                        : "border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedPatterns.has(opt.id)}
+                      onChange={() => handleTogglePattern(opt.id)}
+                      aria-label={opt.label}
+                      className="mt-0.5 accent-rose-500"
+                    />
+                    <div className="flex-1">
+                      <p className="font-medium text-slate-800 text-sm">{opt.label}</p>
+                      <p className="text-xs text-slate-500">{opt.desc}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
               <div className="flex gap-2">
                 <button
                   onClick={handleSaveTherapist}
-                  disabled={therapistText.trim().length < 5}
-                  className="flex-1 py-3 bg-rose-500 text-white font-medium rounded-xl hover:bg-rose-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="flex-1 py-3 bg-rose-500 text-white font-medium rounded-xl hover:bg-rose-600 transition-colors"
                 >
-                  {therapistSaved ? "Saved ✓" : "Save plan"}
+                  {therapistSaved ? "Saved ✓" : "Save preferences"}
                 </button>
-                {savedPlan && (
+                {hasSavedPlan && (
                   <button
                     onClick={handleClearTherapist}
                     className="py-3 px-4 bg-white border-2 border-slate-200 text-slate-600 font-medium rounded-xl hover:border-slate-300 transition-colors"
@@ -477,9 +517,9 @@ function SettingsView({ onReset }: { onReset: () => void }) {
                   </button>
                 )}
               </div>
-              {savedPlan && (
+              {hasSavedPlan && (
                 <p className="text-xs text-slate-400 mt-3">
-                  ✓ Plan saved. Your journal prompts will prioritize these focus areas.
+                  ✓ Saved. Your journal prompts will prioritize these focus areas.
                 </p>
               )}
             </div>

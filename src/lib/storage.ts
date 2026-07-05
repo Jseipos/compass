@@ -168,7 +168,7 @@ export interface ExportData {
   exportedAt: string;
   assessment: { id: string; answers: Record<string, number>; date: string } | null;
   entries: JournalEntry[];
-  therapistPlan: { id: string; text: string; date: string } | null;
+  therapistPlan: TherapistPlan | null;
 }
 
 export async function exportAllData(): Promise<ExportData> {
@@ -180,7 +180,7 @@ export async function exportAllData(): Promise<ExportData> {
     req.onsuccess = () => resolve(req.result ?? null);
     req.onerror = () => reject(req.error);
   });
-  const therapistPlan = await new Promise<{ id: string; text: string; date: string } | null>((resolve, reject) => {
+  const therapistPlan = await new Promise<TherapistPlan | null>((resolve, reject) => {
     const tx = db.transaction(STORE_THERAPIST, "readonly");
     const req = tx.objectStore(STORE_THERAPIST).get("current");
     req.onsuccess = () => resolve(req.result ?? null);
@@ -227,10 +227,10 @@ export async function importData(data: ExportData): Promise<{ entries: number; a
   }
 
   // Import therapist plan
-  if (data.therapistPlan && data.therapistPlan.text) {
+  if (data.therapistPlan && data.therapistPlan.patterns) {
     await new Promise<void>((resolve, reject) => {
       const tx = db.transaction(STORE_THERAPIST, "readwrite");
-      tx.objectStore(STORE_THERAPIST).put(data.therapistPlan);
+      tx.objectStore(STORE_THERAPIST).put({ id: "current", ...data.therapistPlan });
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });
@@ -240,17 +240,22 @@ export async function importData(data: ExportData): Promise<{ entries: number; a
 }
 
 // ===== Therapist Plan =====
-export async function saveTherapistPlan(text: string): Promise<void> {
+export interface TherapistPlan {
+  patterns: string[]; // selected pattern IDs to prioritize
+  date: string;
+}
+
+export async function saveTherapistPlan(patterns: string[]): Promise<void> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_THERAPIST, "readwrite");
-    tx.objectStore(STORE_THERAPIST).put({ id: "current", text, date: new Date().toISOString() });
+    tx.objectStore(STORE_THERAPIST).put({ id: "current", patterns, date: new Date().toISOString() });
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
 }
 
-export async function getTherapistPlan(): Promise<{ id: string; text: string; date: string } | null> {
+export async function getTherapistPlan(): Promise<TherapistPlan | null> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_THERAPIST, "readonly");

@@ -631,11 +631,22 @@ export function generatePlan(topPatterns: string[]): { patterns: string[]; promp
 }
 
 // Get two prompt choices for the user
+// If therapist priorities exist, weight selection toward those patterns
 export function getDailyPromptChoices(
   plan: { prompts: JournalPrompt[] },
-  dayOffset: number = 0
+  dayOffset: number = 0,
+  therapistPatterns: string[] = []
 ): [JournalPrompt, JournalPrompt] {
-  const pool = plan.prompts;
+  let pool = plan.prompts;
+
+  // If therapist has selected patterns, boost their prompts
+  if (therapistPatterns.length > 0) {
+    const prioritized = pool.filter((p) => therapistPatterns.includes(p.pattern));
+    const others = pool.filter((p) => !therapistPatterns.includes(p.pattern));
+    // Put prioritized prompts first, then others
+    pool = [...prioritized, ...others];
+  }
+
   if (pool.length < 2) {
     return [pool[0], pool[0]];
   }
