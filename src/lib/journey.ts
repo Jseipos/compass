@@ -31,7 +31,7 @@ export const PLACES: Record<PlaceId, Place> = {
     id: "doorway",
     name: "The Doorway",
     message: "You just got here. That's enough.",
-    description: "A simple door with soft light behind it. Bare ground waiting for a seed. Everything starts here.",
+    description: "A simple door with soft light behind it. Your seed is in the ground. Everything starts here.",
     forageItem: "soil",
     forageVerb: "settling",
     plantEffect: "Your plant is a seed in fresh earth.",
