@@ -106,12 +106,43 @@ The plant is a cumulative record of everywhere you've been. Not just where you a
 
 ## Visual Design Notes
 
-- The home screen shows: your plant, in its current place, with whatever it's gathered around it
+### Home Screen — The Porthole
+- The journey map appears as a **circular icon** on the home screen — like a porthole looking into your current place
+- Inside the circle: your plant in its current terrain, tiny but alive
+- Place name + one sentence underneath: "You're in the misty forest. You showed up anyway. That's the whole thing."
 - No progress bar. No "you're 60% to the grove."
-- A sentence or two that feels like a journal entry: "You're in the misty forest. You showed up anyway. That's the whole thing."
-- The terrain changes when your data changes. Not instantly — it eases. You don't snap from Wildflower Field to Misty Forest because you had one bad day.
 - Returning users see their place first and feel oriented. "Oh, I'm at the riverbank again."
 - The place is never a demotion. It's weather. It's terrain. It's just where you are.
+
+### Full Screen Scene — Tap to Enter
+- Tapping the porthole opens a **full-screen animated scene** — not a repeat of the icon, but a living, breathing version of the place
+- Feels like stepping into the landscape. Ambient, calming, slow.
+- Not a game. Not a reward animation. A place to rest.
+- Someone opens it, watches for 30 seconds, breathes, closes it. That's the whole interaction.
+
+### Scene Animation Concepts
+- **The Doorway** — Soft light pulsing behind a door, particles floating toward it
+- **Misty Forest** — Trees barely swaying, fog drifting sideways, occasional droplet catching light
+- **Riverbank** — Water rippling, leaves floating past, reflection shimmering
+- **Wildflower Field** — Flowers bobbing in a breeze, pollen drifting, clouds moving slow
+- **Mountain Trail** — Wind through pines, distant bird, light shifting through canopy
+- **Old Growth Grove** — Dust motes in dappled light, slow canopy sway, utter stillness
+
+### Ambient Audio
+- Not songs. Ambient drones that match the terrain without being heavy.
+- **Misty Forest** — Rain and distant thunder rumble, muffled
+- **Riverbank** — Running water, gentle current, occasional bird
+- **Wildflower Field** — Breeze through grass, bees, warm silence
+- **Mountain Trail** — Wind through pines, sparse birdsong
+- **Old Growth Grove** — Deep stillness, creaking branches, wind high above
+- **The Doorway** — Soft hum, almost silence
+- Could be generated with Web Audio API (no audio files to ship) or short looping ambient clips
+- Audio is opt-in. Defaults to off. A small speaker icon in the corner of the full-screen scene.
+
+### Terrain Transitions
+- The terrain changes when your data changes. Not instantly — it eases.
+- You don't snap from Wildflower Field to Misty Forest because you had one bad day.
+- The porthole gradually shifts over 3-5 entries worth of data change.
 
 ---
 
