@@ -131,7 +131,7 @@ export default function BreakScreen({ screen, onComplete, onSkip }: BreakScreenP
               />
               <div className="text-3xl">{screen.sliderMax?.emoji}</div>
             </div>
-            <div className="flex justify-between text-sm text-slate-400">
+            <div className="flex justify-between text-sm text-slate-500">
               <span>{screen.sliderMin?.label}</span>
               <span>{screen.sliderMax?.label}</span>
             </div>
@@ -153,13 +153,13 @@ export default function BreakScreen({ screen, onComplete, onSkip }: BreakScreenP
               (screen.type === "visual-pick" && !pickedId) ||
               (screen.type === "ranking" && ranking.length === 0)
             }
-            className="w-full py-4 bg-gradient-to-r from-rose-400 to-teal-400 text-white font-medium rounded-xl hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
+            className="w-full py-4 bg-gradient-to-r from-rose-600 to-teal-600 text-white font-medium rounded-xl hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
           >
             Continue →
           </button>
           <button
             onClick={onSkip}
-            className="text-sm text-slate-400 hover:text-slate-600 transition-colors text-center"
+            className="text-sm text-slate-500 hover:text-slate-600 transition-colors text-center"
           >
             Skip this
           </button>

@@ -81,7 +81,7 @@ export default function History({ onBackToHub }: HistoryProps) {
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center">
         <div className="text-center">
           <div className="text-4xl mb-4 animate-pulse">🧭</div>
-          <p className="text-slate-400">Loading...</p>
+          <p className="text-slate-500">Loading...</p>
         </div>
       </div>
     );
@@ -116,7 +116,7 @@ export default function History({ onBackToHub }: HistoryProps) {
                   {info.name}
                 </span>
               )}
-              <span className="text-xs text-slate-400 capitalize">
+              <span className="text-xs text-slate-500 capitalize">
                 {selected.promptId.includes("morning")
                   ? "morning"
                   : selected.promptId.includes("evening")
@@ -155,7 +155,7 @@ export default function History({ onBackToHub }: HistoryProps) {
                 <div className="text-3xl mb-1">
                   {moodLabels[selected.mood - 1] ?? "😐"}
                 </div>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500">
                   {moodWords[selected.mood - 1] ?? "—"}
                 </p>
               </div>
@@ -166,7 +166,7 @@ export default function History({ onBackToHub }: HistoryProps) {
                 <div className="text-3xl mb-1">
                   {energyLabels[selected.energy - 1] ?? "🔋"}
                 </div>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500">
                   {energyWords[selected.energy - 1] ?? "—"}
                 </p>
               </div>
@@ -174,12 +174,12 @@ export default function History({ onBackToHub }: HistoryProps) {
           </div>
 
           <div className="text-center">
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-500">
               {formatDate(selected.date)} at {formatTime(selected.date)}
             </p>
           </div>
 
-          <p className="text-center text-xs text-slate-400 mt-8">
+          <p className="text-center text-xs text-slate-500 mt-8">
             Made with love by Jess and Kai 🩷
           </p>
         </div>
@@ -218,7 +218,7 @@ export default function History({ onBackToHub }: HistoryProps) {
         <div className="mb-6 pt-4">
           <div>
             <h1 className="text-xl font-bold text-slate-800">Your Journal</h1>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-500">
               {entries.length} {entries.length === 1 ? "entry" : "entries"}
             </p>
           </div>
@@ -266,7 +266,7 @@ export default function History({ onBackToHub }: HistoryProps) {
         <div className="space-y-8">
           {dayLabels.map((day) => (
             <div key={day}>
-              <h2 className="text-sm font-medium text-slate-400 mb-3 px-1">
+              <h2 className="text-sm font-medium text-slate-500 mb-3 px-1">
                 {day}
               </h2>
               <div className="space-y-3">
@@ -280,7 +280,7 @@ export default function History({ onBackToHub }: HistoryProps) {
                       className="w-full text-left bg-white rounded-2xl border border-slate-200 p-5 hover:border-rose-200 hover:shadow-sm transition-all duration-200 group"
                     >
                       <div className="flex items-start justify-between gap-4 mb-2">
-                        <p className="text-sm text-slate-400">
+                        <p className="text-sm text-slate-500">
                           {formatTime(entry.date)}
                         </p>
                         <div className="flex items-center gap-2">
@@ -311,7 +311,7 @@ export default function History({ onBackToHub }: HistoryProps) {
                             className="w-2 h-2 rounded-full"
                             style={{ backgroundColor: info.color }}
                           />
-                          <span className="text-xs text-slate-400">
+                          <span className="text-xs text-slate-500">
                             {info.name}
                           </span>
                         </div>
@@ -326,7 +326,7 @@ export default function History({ onBackToHub }: HistoryProps) {
 
         {filtered.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-slate-400">
+            <p className="text-slate-500">
               No entries for this filter.
             </p>
             <button
@@ -338,7 +338,7 @@ export default function History({ onBackToHub }: HistoryProps) {
           </div>
         )}
 
-        <p className="text-center text-xs text-slate-400 mt-10 mb-4">
+        <p className="text-center text-xs text-slate-500 mt-10 mb-4">
           🔒 Everything stays on your device. Made with love by Jess and Kai 🩷
         </p>
       </div>
