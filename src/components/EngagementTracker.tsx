@@ -101,7 +101,7 @@ export default function EngagementTracker({ refreshKey }: EngagementTrackerProps
               </p>
             </div>
             <div className="bg-slate-50 rounded-xl p-4 mb-4">
-              <p className="text-xs text-slate-400 mb-2">
+              <p className="text-xs text-slate-500 mb-2">
                 {new Date(showReflection.date).toLocaleDateString("en-US", {
                   weekday: "long",
                   month: "long",
@@ -113,7 +113,7 @@ export default function EngagementTracker({ refreshKey }: EngagementTrackerProps
                 {showReflection.response}
               </p>
               {showReflection.mood !== undefined && (
-                <p className="text-xs text-slate-400 mt-2">
+                <p className="text-xs text-slate-500 mt-2">
                   Mood: {["😞", "😕", "😐", "🙂", "😄"][showReflection.mood] || "😐"}
                 </p>
               )}

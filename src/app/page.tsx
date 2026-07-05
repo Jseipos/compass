@@ -206,6 +206,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
       <TabBar active={activeTab} onNavigate={handleNavigate} journalDisabled={!journalEnabled} />
 
+      <div id="main-content">
       {view === "home" && (
         <div className="flex flex-col items-center p-4 sm:p-6">
           <div className="max-w-2xl w-full pt-4 sm:pt-6">
@@ -359,6 +360,7 @@ export default function Home() {
       )}
 
       {view === "settings" && <SettingsView onReset={() => setView("home")} />}
+      </div>
     </div>
   );
 }
@@ -521,7 +523,7 @@ function SettingsView({ onReset }: { onReset: () => void }) {
                 )}
               </div>
               {hasSavedPlan && (
-                <p className="text-xs text-slate-400 mt-3">
+                <p className="text-xs text-slate-500 mt-3">
                   ✓ Saved. Your journal prompts will prioritize these focus areas.
                 </p>
               )}
@@ -557,7 +559,7 @@ function SettingsView({ onReset }: { onReset: () => void }) {
               >
                 Add to my calendar ↓
               </button>
-              <p className="text-xs text-slate-400 mt-3">
+              <p className="text-xs text-slate-500 mt-3">
                 Downloads a calendar file. Open it on your phone to add a daily reminder.
               </p>
             </div>

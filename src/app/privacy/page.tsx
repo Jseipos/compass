@@ -92,7 +92,7 @@ export default function PrivacyPage() {
                 className="w-full text-left p-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
               >
                 <span className="font-medium text-slate-800 text-sm">{section.title}</span>
-                <span className="text-slate-400 text-sm" aria-hidden="true">
+                <span className="text-slate-500 text-sm" aria-hidden="true">
                   {expanded === section.id ? "−" : "+"}
                 </span>
               </button>

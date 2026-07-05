@@ -36,7 +36,7 @@ export default function Results({ patterns, topPatterns, totalScore, onContinue 
               <div key={pattern} className="bg-white rounded-xl border border-slate-200 p-5">
                 <div className="flex items-center justify-between mb-2">
                   <p className="font-medium text-slate-800">{info.name}</p>
-                  <span className="text-xs text-slate-400 uppercase tracking-wide">{info.theme}</span>
+                  <span className="text-xs text-slate-500 uppercase tracking-wide">{info.theme}</span>
                 </div>
                 <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
                   <div
@@ -62,12 +62,12 @@ export default function Results({ patterns, topPatterns, totalScore, onContinue 
 
         <button
           onClick={onContinue}
-          className="w-full py-4 bg-gradient-to-r from-rose-400 to-teal-400 text-white font-medium rounded-xl hover:opacity-90 transition-opacity"
+          className="w-full py-4 bg-gradient-to-r from-rose-600 to-teal-600 text-white font-medium rounded-xl hover:opacity-90 transition-opacity"
         >
           Start Journaling →
         </button>
 
-        <p className="text-center text-xs text-slate-400 mt-8">
+        <p className="text-center text-xs text-slate-500 mt-8">
           Made with love by Jess and Kai 🩷
         </p>
       </div>

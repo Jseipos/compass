@@ -85,12 +85,12 @@ export default function Welcome({ onBegin }: WelcomeProps) {
         <button
           onClick={() => selectedPlant && onBegin(selectedPlant)}
           disabled={!selectedPlant}
-          className="w-full py-4 bg-gradient-to-r from-rose-400 to-teal-400 text-white font-medium rounded-xl hover:opacity-90 transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-400 disabled:opacity-30 disabled:cursor-not-allowed"
+          className="w-full py-4 bg-gradient-to-r from-rose-600 to-teal-600 text-white font-medium rounded-xl hover:opacity-90 transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-400 disabled:opacity-30 disabled:cursor-not-allowed"
         >
           Start your journey →
         </button>
 
-        <p className="text-xs text-slate-400 mt-12">
+        <p className="text-xs text-slate-500 mt-12">
           Compass is a journaling tool, not a substitute for professional care.
           <br />
           If you&apos;re in crisis, call or text 988.

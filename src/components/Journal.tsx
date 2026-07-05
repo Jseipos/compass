@@ -75,7 +75,9 @@ export default function Journal({ plan, answeredCount, totalQuestions, therapist
   }
 
   const moodEmojis = ["😞", "😕", "😐", "🙂", "😄"];
+  const moodLabels = ["Very low mood", "Low mood", "Neutral mood", "Good mood", "Great mood"];
   const energyEmojis = ["🪫", "🔋", "⚡"];
+  const energyLabels = ["Low energy", "Moderate energy", "High energy"];
 
   // Step 1: Choose a prompt
   if (!selectedPrompt) {
@@ -85,7 +87,7 @@ export default function Journal({ plan, answeredCount, totalQuestions, therapist
           <div className="mb-8 pt-4">
             <div>
               <h1 className="text-xl font-bold text-slate-800">Today's Journal</h1>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-slate-500">
                 {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
               </p>
             </div>
@@ -118,14 +120,14 @@ export default function Journal({ plan, answeredCount, totalQuestions, therapist
                 className="w-full text-left p-6 rounded-2xl border-2 border-slate-200 bg-white hover:border-rose-300 hover:bg-rose-50/30 transition-all duration-200 group"
               >
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-slate-100 group-hover:bg-rose-100 flex items-center justify-center text-lg font-bold text-slate-400 group-hover:text-rose-500 transition-colors flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 group-hover:bg-rose-100 flex items-center justify-center text-lg font-bold text-slate-500 group-hover:text-rose-500 transition-colors flex-shrink-0">
                     {idx === 0 ? "A" : "B"}
                   </div>
                   <div className="flex-1">
                     <p className="text-lg text-slate-800 leading-relaxed">
                       {prompt.text}
                     </p>
-                    <p className="text-xs text-slate-400 mt-2 capitalize">
+                    <p className="text-xs text-slate-500 mt-2 capitalize">
                       {prompt.type} · {prompt.timeOfDay ?? "anytime"}
                     </p>
                   </div>
@@ -134,7 +136,7 @@ export default function Journal({ plan, answeredCount, totalQuestions, therapist
             ))}
           </div>
 
-          <p className="text-center text-xs text-slate-400 mt-8">
+          <p className="text-center text-xs text-slate-500 mt-8">
             Made with love by Jess and Kai 🩷
           </p>
         </div>
@@ -157,7 +159,7 @@ export default function Journal({ plan, answeredCount, totalQuestions, therapist
           </div>
           <div>
             <h1 className="text-xl font-bold text-slate-800">Today's Journal</h1>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-500">
               {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
             </p>
           </div>
@@ -186,6 +188,7 @@ export default function Journal({ plan, answeredCount, totalQuestions, therapist
           value={response}
           onChange={(e) => setResponse(e.target.value)}
           placeholder="Just write. No structure needed. This is for you."
+          aria-label="Journal entry"
           className="w-full min-h-[200px] p-5 rounded-xl border-2 border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:border-rose-300 focus:outline-none transition-colors resize-none leading-relaxed"
         />
 
@@ -194,39 +197,44 @@ export default function Journal({ plan, answeredCount, totalQuestions, therapist
             value={followUpResponse}
             onChange={(e) => setFollowUpResponse(e.target.value)}
             placeholder="Your response to the follow-up..."
+            aria-label="Follow-up response"
             className="w-full min-h-[120px] p-5 rounded-xl border-2 border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:border-rose-300 focus:outline-none transition-colors resize-none leading-relaxed mt-4"
           />
         )}
 
         <div className="grid grid-cols-2 gap-4 mt-6">
           <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <p className="text-sm text-slate-500 mb-3">Mood</p>
-            <div className="flex justify-between">
+            <p className="text-sm text-slate-600 mb-3" id="mood-label">Mood</p>
+            <div className="flex justify-between" role="group" aria-labelledby="mood-label">
               {moodEmojis.map((emoji, i) => (
                 <button
                   key={i}
                   onClick={() => setMood(i + 1)}
-                  className={`text-2xl transition-transform ${
+                  aria-label={moodLabels[i]}
+                  aria-pressed={mood === i + 1}
+                  className={`text-2xl transition-transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-400 rounded ${
                     mood === i + 1 ? "scale-125" : "opacity-40 hover:opacity-70"
                   }`}
                 >
-                  {emoji}
+                  <span aria-hidden="true">{emoji}</span>
                 </button>
               ))}
             </div>
           </div>
           <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <p className="text-sm text-slate-500 mb-3">Energy</p>
-            <div className="flex justify-between">
+            <p className="text-sm text-slate-600 mb-3" id="energy-label">Energy</p>
+            <div className="flex justify-between" role="group" aria-labelledby="energy-label">
               {energyEmojis.map((emoji, i) => (
                 <button
                   key={i}
                   onClick={() => setEnergy(i + 1)}
-                  className={`text-2xl transition-transform ${
+                  aria-label={energyLabels[i]}
+                  aria-pressed={energy === i + 1}
+                  className={`text-2xl transition-transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-400 rounded ${
                     energy === i + 1 ? "scale-125" : "opacity-40 hover:opacity-70"
                   }`}
                 >
-                  {emoji}
+                  <span aria-hidden="true">{emoji}</span>
                 </button>
               ))}
             </div>
@@ -236,12 +244,12 @@ export default function Journal({ plan, answeredCount, totalQuestions, therapist
         <button
           onClick={handleSave}
           disabled={response.trim().length < 5}
-          className="w-full py-4 mt-6 bg-gradient-to-r from-rose-400 to-teal-400 text-white font-medium rounded-xl hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
+          className="w-full py-4 mt-6 bg-gradient-to-r from-rose-600 to-teal-600 text-white font-medium rounded-xl hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
         >
           Save Entry
         </button>
 
-        <p className="text-center text-xs text-slate-400 mt-6">
+        <p className="text-center text-xs text-slate-500 mt-6">
           🔒 Everything stays on your device. Made with love by Jess and Kai 🩷
         </p>
       </div>
