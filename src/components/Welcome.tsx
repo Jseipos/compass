@@ -31,7 +31,7 @@ export default function Welcome({ onBegin }: WelcomeProps) {
           onClick={onBegin}
           className="w-full py-4 bg-gradient-to-r from-rose-400 to-teal-400 text-white font-medium rounded-xl hover:opacity-90 transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-400"
         >
-          Start →
+          Start your journey →
         </button>
 
         <p className="text-xs text-slate-400 mt-12">
