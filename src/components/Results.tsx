@@ -10,20 +10,12 @@ interface ResultsProps {
   onBack?: () => void;
 }
 
-export default function Results({ patterns, topPatterns, totalScore, onContinue, onBack }: ResultsProps) {
+export default function Results({ patterns, topPatterns, totalScore, onContinue }: ResultsProps) {
   const maxScore = Math.max(...Object.values(patterns), 1);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col items-center justify-center p-6">
-      <div className="max-w-2xl w-full">
-        {onBack && (
-          <button
-            onClick={onBack}
-            className="text-sm text-slate-400 hover:text-slate-600 transition-colors mb-6"
-          >
-            ← Topics
-          </button>
-        )}
+      <div className="max-w-2xl w-full pt-4">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-slate-800 mb-2">
             Here's what we noticed
