@@ -12,6 +12,7 @@ import Journal from "@/components/Journal";
 import History from "@/components/History";
 import TabBar from "@/components/TabBar";
 import Welcome from "@/components/Welcome";
+import EngagementTracker from "@/components/EngagementTracker";
 
 type Tab = "home" | "journal" | "history" | "settings";
 type View = "loading" | "welcome" | Tab | "results" | "break" | string;
@@ -27,6 +28,7 @@ export default function Home() {
   } | null>(null);
   const [pendingBreak, setPendingBreak] = useState<BreakScreenData | null>(null);
   const [shownBreaks, setShownBreaks] = useState<Set<number>>(new Set());
+  const [engagementKey, setEngagementKey] = useState(0);
 
   const totalQuestions = questionGroups.reduce((sum, g) => sum + g.questions.length, 0);
   const answeredCount = Object.keys(answers).length;
@@ -82,6 +84,7 @@ export default function Home() {
 
   const handleNavigate = (tab: Tab) => {
     setView(tab);
+    if (tab === "home") setEngagementKey((k) => k + 1);
   };
 
   const handleSeeResults = () => {
@@ -204,6 +207,9 @@ export default function Home() {
                 <span className="text-sm text-slate-500">{Math.round((answeredCount / totalQuestions) * 100)}%</span>
               </div>
             )}
+
+            {/* Engagement tracker — heatmap + milestones */}
+            <EngagementTracker refreshKey={engagementKey} />
 
             {/* See patterns link */}
             {answeredCount > 0 && (
