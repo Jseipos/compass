@@ -257,19 +257,57 @@ function SceneAnimation({ place }: { place: PlaceId }) {
   if (place === "doorway") {
     return (
       <div className="w-full h-full relative">
-        {/* Pulsing light */}
+        {/* Warm glow behind the door */}
         <div
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-96 rounded-full"
           style={{
-            background: "radial-gradient(circle, rgba(254,243,199,0.6) 0%, transparent 70%)",
+            background: "radial-gradient(ellipse, rgba(254,243,199,0.5) 0%, transparent 65%)",
             animation: "journey-pulse 4s ease-in-out infinite",
           }}
         />
-        {/* Floating particles */}
-        {[...Array(12)].map((_, i) => (
+
+        {/* The Door — grand, centered, fairytale style */}
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+          style={{ animation: "journey-door-glow 5s ease-in-out infinite" }}
+        >
+          <svg width="240" height="360" viewBox="0 0 240 360" fill="none">
+            {/* Door frame — arched top */}
+            <path
+              d="M30 360 L30 120 Q30 20 120 20 Q210 20 210 120 L210 360 Z"
+              fill="#8b6f47"
+              stroke="#6b4423"
+              strokeWidth="3"
+            />
+            {/* Inner door panel */}
+            <path
+              d="M50 350 L50 125 Q50 40 120 40 Q190 40 190 125 L190 350 Z"
+              fill="url(#door-light)"
+            />
+            {/* Light pouring through */}
+            <defs>
+              <linearGradient id="door-light" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#fef9c3" stopOpacity="0.9" />
+                <stop offset="50%" stopColor="#fde68a" stopOpacity="0.7" />
+                <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.4" />
+              </linearGradient>
+            </defs>
+            {/* Door panels — decorative */}
+            <path d="M60 140 L180 140" stroke="#6b4423" strokeWidth="1.5" opacity="0.4" />
+            <path d="M60 240 L180 240" stroke="#6b4423" strokeWidth="1.5" opacity="0.4" />
+            {/* The knob — big, centered, fairytale */}
+            <circle cx="120" cy="180" r="14" fill="#f59e0b" stroke="#b45309" strokeWidth="2" />
+            <circle cx="120" cy="180" r="6" fill="#fbbf24" />
+            {/* Door trim details */}
+            <path d="M30 120 Q30 20 120 20 Q210 20 210 120" fill="none" stroke="#facc15" strokeWidth="2" opacity="0.5" />
+          </svg>
+        </div>
+
+        {/* Floating particles — drifting toward the door */}
+        {[...Array(15)].map((_, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 rounded-full bg-amber-200/40"
+            className="absolute w-1 h-1 rounded-full bg-amber-200/50"
             style={{
               left: `${(i * 37) % 100}%`,
               top: `${(i * 53) % 100}%`,
@@ -278,8 +316,11 @@ function SceneAnimation({ place }: { place: PlaceId }) {
             }}
           />
         ))}
+        {/* Ground line */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-amber-900/30 to-transparent" />
         <style>{`
-          @keyframes journey-pulse { 0%,100% { transform: translate(-50%,-50%) scale(1); opacity: 0.6; } 50% { transform: translate(-50%,-50%) scale(1.15); opacity: 0.9; } }
+          @keyframes journey-pulse { 0%,100% { transform: translate(-50%,-50%) scale(1); opacity: 0.5; } 50% { transform: translate(-50%,-50%) scale(1.1); opacity: 0.8; } }
+          @keyframes journey-door-glow { 0%,100% { transform: translate(-50%,-50%) scale(1); } 50% { transform: translate(-50%,-50%) scale(1.02); } }
           @keyframes journey-float-0 { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
           @keyframes journey-float-1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(10px,-15px); } }
           @keyframes journey-float-2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-8px,-12px); } }
