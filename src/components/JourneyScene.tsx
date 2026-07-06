@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import type { PlaceId } from "@/lib/journey";
 import { PLACES } from "@/lib/journey";
 import type { PlantType } from "./Welcome";
+import SceneButton from "./SceneButton";
 
 interface JourneySceneProps {
   place: PlaceId;
@@ -30,95 +31,99 @@ export default function JourneyScene({
   const p = PLACES[place];
 
   const startAudio = () => {
-    const ctx = new AudioContext();
-    // iOS often starts AudioContext in suspended state
-    if (ctx.state === "suspended") {
-      ctx.resume();
+    try {
+      const ctx = new AudioContext();
+      if (ctx.state === "suspended") {
+        ctx.resume();
+      }
+      audioRef.current = ctx;
+      console.log("[Compass] AudioContext started, state:", ctx.state);
+
+      // Base drone — two detuned oscillators
+      const drone1 = ctx.createOscillator();
+      const drone2 = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      drone1.type = "sine";
+      drone2.type = "sine";
+
+      const baseFreq: Record<PlaceId, number> = {
+        doorway: 220,
+        misty_forest: 160,
+        riverbank: 262,
+        wildflower_field: 330,
+        mountain_trail: 196,
+        old_growth_grove: 147,
+      };
+
+      drone1.frequency.value = baseFreq[place];
+      drone2.frequency.value = baseFreq[place] * 1.005;
+
+      filter.type = "lowpass";
+      filter.frequency.value = 1200;
+      gainNode.gain.setValueAtTime(0.001, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 2);
+
+      drone1.connect(filter);
+      drone2.connect(filter);
+      filter.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      drone1.start();
+      drone2.start();
+      console.log("[Compass] Drones started at", baseFreq[place], "Hz");
+
+      // Brown noise for texture
+      const bufferSize = ctx.sampleRate * 2;
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = noiseBuffer.getChannelData(0);
+      let lastOut = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        data[i] = (lastOut + 0.02 * white) / 1.02;
+        lastOut = data[i];
+        data[i] *= 3.5;
+      }
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = noiseBuffer;
+      noise.loop = true;
+      const noiseGain = ctx.createGain();
+      const noiseFilter = ctx.createBiquadFilter();
+
+      const noiseFilterFreq: Record<PlaceId, number> = {
+        doorway: 400,
+        misty_forest: 800,
+        riverbank: 1500,
+        wildflower_field: 1000,
+        mountain_trail: 700,
+        old_growth_grove: 500,
+      };
+      const noiseGainVal: Record<PlaceId, number> = {
+        doorway: 0.05,
+        misty_forest: 0.08,
+        riverbank: 0.1,
+        wildflower_field: 0.07,
+        mountain_trail: 0.09,
+        old_growth_grove: 0.06,
+      };
+
+      noiseFilter.type = "lowpass";
+      noiseFilter.frequency.value = noiseFilterFreq[place];
+      noiseGain.gain.setValueAtTime(0.001, ctx.currentTime);
+      noiseGain.gain.exponentialRampToValueAtTime(noiseGainVal[place], ctx.currentTime + 3);
+
+      noise.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(ctx.destination);
+      noise.start();
+      console.log("[Compass] Noise started");
+
+      audioNodesRef.current = { drone1, drone2, noise };
+    } catch (err) {
+      console.error("[Compass] Audio error:", err);
     }
-    audioRef.current = ctx;
-
-    // Base drone — two detuned oscillators
-    const drone1 = ctx.createOscillator();
-    const drone2 = ctx.createOscillator();
-    const gainNode = ctx.createGain();
-    const filter = ctx.createBiquadFilter();
-
-    drone1.type = "sine";
-    drone2.type = "sine";
-
-    const baseFreq: Record<PlaceId, number> = {
-      doorway: 110,
-      misty_forest: 80,
-      riverbank: 130,
-      wildflower_field: 165,
-      mountain_trail: 98,
-      old_growth_grove: 73,
-    };
-
-    drone1.frequency.value = baseFreq[place];
-    drone2.frequency.value = baseFreq[place] * 1.005;
-
-    filter.type = "lowpass";
-    filter.frequency.value = 600;
-    // Start at non-zero value (exponentialRamp can't start from 0)
-    gainNode.gain.setValueAtTime(0.001, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 2);
-
-    drone1.connect(filter);
-    drone2.connect(filter);
-    filter.connect(gainNode);
-    gainNode.connect(ctx.destination);
-
-    drone1.start();
-    drone2.start();
-
-    // Brown noise for texture
-    const bufferSize = ctx.sampleRate * 2;
-    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = noiseBuffer.getChannelData(0);
-    let lastOut = 0;
-    for (let i = 0; i < bufferSize; i++) {
-      const white = Math.random() * 2 - 1;
-      data[i] = (lastOut + 0.02 * white) / 1.02;
-      lastOut = data[i];
-      data[i] *= 3.5;
-    }
-
-    const noise = ctx.createBufferSource();
-    noise.buffer = noiseBuffer;
-    noise.loop = true;
-    const noiseGain = ctx.createGain();
-    const noiseFilter = ctx.createBiquadFilter();
-
-    const noiseFilterFreq: Record<PlaceId, number> = {
-      doorway: 200,
-      misty_forest: 600,
-      riverbank: 1200,
-      wildflower_field: 800,
-      mountain_trail: 500,
-      old_growth_grove: 300,
-    };
-    const noiseGainVal: Record<PlaceId, number> = {
-      doorway: 0.03,
-      misty_forest: 0.06,
-      riverbank: 0.08,
-      wildflower_field: 0.05,
-      mountain_trail: 0.07,
-      old_growth_grove: 0.04,
-    };
-
-    noiseFilter.type = "lowpass";
-    noiseFilter.frequency.value = noiseFilterFreq[place];
-    // Same fix: start non-zero for exponential ramp
-    noiseGain.gain.setValueAtTime(0.001, ctx.currentTime);
-    noiseGain.gain.exponentialRampToValueAtTime(noiseGainVal[place], ctx.currentTime + 3);
-
-    noise.connect(noiseFilter);
-    noiseFilter.connect(noiseGain);
-    noiseGain.connect(ctx.destination);
-    noise.start();
-
-    audioNodesRef.current = { drone1, drone2, noise };
   };
 
   const stopAudio = () => {
@@ -177,36 +182,26 @@ export default function JourneyScene({
       </div>
 
       {/* Close button */}
-      <button
-        onClick={onClose}
-        aria-label="Close scene"
-        className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xl hover:bg-white/30 transition-colors"
-        style={{ marginTop: "env(safe-area-inset-top)" }}
-      >
+      <SceneButton onClick={onClose} ariaLabel="Close scene" position="top-right">
         ✕
-      </button>
+      </SceneButton>
 
       {/* Audio toggle */}
-      <button
-        onClick={toggleAudio}
-        aria-label={audioOn ? "Mute ambient sound" : "Play ambient sound"}
-        className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-lg hover:bg-white/30 transition-colors"
-        style={{ marginTop: "env(safe-area-inset-top)" }}
-      >
+      <SceneButton onClick={toggleAudio} ariaLabel={audioOn ? "Mute ambient sound" : "Play ambient sound"} position="top-left">
         {audioOn ? "🔊" : "🔈"}
-      </button>
+      </SceneButton>
 
-      {/* Content overlay */}
-      <div className="relative z-10 flex flex-col items-center justify-end min-h-screen pb-16 px-6"
+      {/* Content overlay — pointer-events-none so buttons work, children re-enable */}
+      <div className="relative z-10 flex flex-col items-center justify-end min-h-screen pb-16 px-6 pointer-events-none"
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 4rem)" }}
       >
         {/* Plant in the scene */}
-        <div className="mb-8 opacity-90">
+        <div className="mb-8 opacity-90 pointer-events-auto">
           <ScenePlant type={plantType} entryCount={entryCount} />
         </div>
 
         {/* Place name and description — framed card for readability on any terrain */}
-        <div className="max-w-sm w-full">
+        <div className="max-w-sm w-full pointer-events-auto">
           <div className="bg-slate-900/70 backdrop-blur-md rounded-2xl px-5 py-4 text-center">
             <h2 className="text-xl font-bold text-white mb-2">
               {p.name}
